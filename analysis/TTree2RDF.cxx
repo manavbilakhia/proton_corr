@@ -67,13 +67,13 @@ ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path)
 
 void plot_delta_P(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c1", "delta_P", 800, 600);
-    auto hist = rdf.Histo1D(ROOT::RDF::TH1DModel("delta_P", "delta_P (gen - rec); delta P (GeV); Events", 100, -2, 10), "delta_p");
+    auto hist = rdf.Histo1D(ROOT::RDF::TH1DModel("delta_P", "delta_P (gen - rec); delta P (GeV); Events", 500, -2, 10), "delta_p");
     hist->Draw();
     canvas.SaveAs((OUTPUT_FOLDER + "delta_P.png").c_str());
     std::cout << "Saved 1D histogram as delta_P.png" << std::endl;
 }
 
-void plot_momenta_components(ROOT::RDF::RNode rdf) {
+void plot_momenta_components(ROOT::RDF::RNode rdf) { // do not use loops, the graphs are too different for slicing and loopiong will lead to lazy eval
     TCanvas canvas("c2", "momenta_components", 800, 600);
     canvas.Divide(3,2);
     canvas.cd(1);
@@ -108,12 +108,26 @@ void plot_delta_P_VS_P_rec(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as delta_P_VS_P_rec.png" << std::endl;
 }
 
+void plot_P_rec_P_gen(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c6", "P_rec VS P_gen", 800, 600);
+    canvas.Divide(1,2);
+    canvas.cd(1);
+    auto hist1 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_gen", "p_proton_gen; p_proton_gen (GeV); Events", 100, 0, 2.5), "p_proton_gen");
+    hist1->Draw();
+    canvas.cd(2);
+    auto hist2 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_rec", "p_proton_rec; p_proton_rec (GeV); Events", 100, 0, 2.5), "p_proton_rec");
+    hist2->Draw();
+
+    canvas.SaveAs((OUTPUT_FOLDER + "P_rec_P_gen.png").c_str());
+    std::cout << "Saved 1D histogram as P_rec_P_gen.png" << std::endl;
+}
+
 
 int main() {
     auto start = std::chrono::high_resolution_clock::now(); // STRAT
 
     // Load ROOT file and convert TTrees to RDataFrame
-    ROOT::EnableImplicitMT(); // Enable multi-threading
+    //ROOT::EnableImplicitMT(); // Enable multi-threading
     auto rdf = convert_ttrees_to_rdataframe(root_file_path);
     if (rdf.GetColumnNames().empty()) {
         std::cerr << "Error: Could not create RDataFrame." << std::endl;
@@ -122,7 +136,10 @@ int main() {
 
     // Define necessary variables in RDataFrame
 
-    auto init_rdf = rdf.Define("delta_p", "return p_proton_gen - p_proton_rec ;");
+    auto init_rdf = rdf//.Filter(p_proton_gen > 0.0)
+                        //.Filter(p_proton_rec > 0.0)
+                        .Define("delta_p", "p_proton_gen - p_proton_rec");
+
     
 
     // Print column names
@@ -131,10 +148,18 @@ int main() {
         std::cout << col << std::endl;
     }
      
-    plot_delta_P_VS_P_rec(init_rdf);
-    plot_delta_P(init_rdf);
-    plot_momenta_components(init_rdf);
+    //init_rdf.Filter("delta_p == 0").Display()->Print();
+init_rdf.Filter("abs(p_proton_gen - p_proton_rec) < 0.01")
+        .Display({"delta_p", "p_proton_gen", "p_proton_rec"}, 100)
+        ->Print();
+
+
+    //plot_delta_P_VS_P_rec(init_rdf);
+    //plot_delta_P(init_rdf);
+    //plot_momenta_components(init_rdf);
     
+    //plot_P_rec_P_gen(init_rdf);
+
     auto end = std::chrono::high_resolution_clock::now(); // END
 
     std::chrono::duration<double> elapsed = end - start;
