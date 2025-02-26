@@ -121,19 +121,33 @@ void ProcessHipo(TString inputFile) {
           event.getStructure(MC_particle);
 
           int N = REC_particle.getRows();
+          int N_mc_event = MC_event.getRows();
+          int N_mc_particle = MC_particle.getRows();
+
           std::vector<int> pid(N), status(N);
+
           for (int i = 0; i < N; i++) {
               pid[i] = REC_particle.getInt("pid", i);
               status[i] = REC_particle.getInt("status", i);
           }
 
+          std::vector<int> pid_mc(N_mc_particle);
+
+          for (int i = 0; i < N_mc_particle; i++) {
+              pid_mc[i] = MC_particle.getInt("pid", i);
+          }
+
           auto it_proton = std::find(pid.begin(), pid.end(), 2212);
           if (it_proton == pid.end()) continue; // If no proton found
-
           int index = std::distance(pid.begin(), it_proton);
-          px_prot_gen = MC_particle.getFloat("px", index);
-          py_prot_gen = MC_particle.getFloat("py", index);
-          pz_prot_gen = MC_particle.getFloat("pz", index);
+
+          auto it_proton_mc = std::find(pid_mc.begin(), pid_mc.end(), 2212);
+          if (it_proton_mc == pid_mc.end()) continue; // If no proton found
+          int index_mc = std::distance(pid_mc.begin(), it_proton_mc);
+
+          px_prot_gen = MC_particle.getFloat("px", index_mc);
+          py_prot_gen = MC_particle.getFloat("py", index_mc);
+          pz_prot_gen = MC_particle.getFloat("pz", index_mc);
 
           px_prot_rec = REC_particle.getFloat("px", index);
           py_prot_rec = REC_particle.getFloat("py", index);
