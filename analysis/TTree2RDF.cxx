@@ -16,6 +16,7 @@
 #include <TLine.h> 
 #include <TLegend.h> 
 #include <string>
+#include <TMath.h>
 #include <cmath>
 #include <chrono>
 
@@ -117,7 +118,7 @@ void plot_momenta_components(ROOT::RDF::RNode rdf) { // do not use loops, the gr
 
 void plot_delta_P_VS_P_rec(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c5", "delta P VS P_rec", 800, 600);
-    auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -1, 1), "p_proton_rec", "delta_p");
+    auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 100, 0, 1.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D->Draw("COLZ");
     canvas.SaveAs((OUTPUT_FOLDER + "delta_P_VS_P_rec.png").c_str());
     std::cout << "Saved 2D histogram as delta_P_VS_P_rec.png" << std::endl;
@@ -157,10 +158,10 @@ void Theta_VS_momentum(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c7", "Theta VS momentum", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_gen_VS_P_gen", "Theta_gen VS P_gen; P_gen (GeV); Theta_gen (rad)", 100, 0, 5, 100, 0, 2), "p_proton_gen", "Theta_gen");
+    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_gen_VS_P_gen", "Theta_gen VS P_gen; P_gen (GeV); Theta_gen (rad)", 100, 0, 5, 100, 0, 90), "p_proton_gen", "Theta_gen");
     hist1->Draw("COLZ");
     canvas.cd(2);
-    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (rad)", 100, 0, 5, 100, 0, 2), "p_proton_rec", "Theta_rec");
+    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (rad)", 100, 0, 5, 100, 0, 90), "p_proton_rec", "Theta_rec");
     hist2->Draw("COLZ");
 
     canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum.png").c_str());
@@ -170,10 +171,10 @@ void Phi_VS_momentum(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c8", "Phi VS momentum", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_gen_VS_P_gen", "Phi_gen VS P_gen; P_gen (GeV); Phi_gen (rad)", 100, 0, 5, 100, -3.5, 3.5), "p_proton_gen", "Phi_gen");
+    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_gen_VS_P_gen", "Phi_gen VS P_gen; P_gen (GeV); Phi_gen (rad)", 100, 0, 5, 100, -180, 360), "p_proton_gen", "Phi_gen");
     hist1->Draw("COLZ");
     canvas.cd(2);
-    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec", "Phi_rec VS P_rec; P_rec (GeV); Phi_rec (rad)", 100, 0, 5, 100, -3.5, 3.5), "p_proton_rec", "Phi_rec");
+    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec", "Phi_rec VS P_rec; P_rec (GeV); Phi_rec (rad)", 100, 0, 5, 100, -180,360), "p_proton_rec", "Phi_rec");
     hist2->Draw("COLZ");
 
     canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_momentum.png").c_str());
@@ -184,10 +185,10 @@ void Phi_VS_Theta(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c9", "Phi VS Theta", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_gen_VS_Theta_gen", "Phi_gen VS Theta_gen; Theta_gen (rad); Phi_gen (rad)", 100, 0, 2, 100, -3.5, 3.5), "Theta_gen", "Phi_gen");
+    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_gen_VS_Theta_gen", "Phi_gen VS Theta_gen; Theta_gen (rad); Phi_gen (rad)", 100, 0, 90, 100, -180, 360), "Theta_gen", "Phi_gen");
     hist1->Draw("COLZ");
     canvas.cd(2);
-    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec", "Phi_rec VS Theta_rec; Theta_rec (rad); Phi_rec (rad)", 100, 0, 2, 100, -3.5, 3.5), "Theta_rec", "Phi_rec");
+    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec", "Phi_rec VS Theta_rec; Theta_rec (rad); Phi_rec (rad)", 100, 0, 90, 100, -180, 360), "Theta_rec", "Phi_rec");
     hist2->Draw("COLZ");
 
     canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_Theta.png").c_str());
@@ -212,15 +213,10 @@ int main() {
                         .Define("delta_p", "p_proton_gen - p_proton_rec")
                         .Define("proton_rec_4_momentum", "TLorentzVector(px_prot_rec, py_prot_rec, pz_prot_rec, 0.938272)")
                         .Define("proton_gen_4_momentum", "TLorentzVector(px_prot_gen, py_prot_gen, pz_prot_gen, 0.938272)")
-                        .Define("Phi_rec", "proton_rec_4_momentum.Phi()")  
-                        .Define("Phi_gen", "proton_gen_4_momentum.Phi()")
-                        .Define("Theta_rec", "proton_rec_4_momentum.Theta()")
-                        .Define("Theta_gen", "proton_gen_4_momentum.Theta()");
-
-
-    
-
-    
+                        .Define("Phi_rec", "proton_rec_4_momentum.Phi()*TMath::RadToDeg()")  
+                        .Define("Phi_gen", "proton_gen_4_momentum.Phi()*TMath::RadToDeg()")
+                        .Define("Theta_rec", "proton_rec_4_momentum.Theta()*TMath::RadToDeg()")
+                        .Define("Theta_gen", "proton_gen_4_momentum.Theta()*TMath::RadToDeg()");
 
     // Print column names
     std::cout << "Columns in RDataFrame:" << std::endl;
@@ -234,15 +230,15 @@ int main() {
        //->Print();
 
 
-    //plot_delta_P_VS_P_rec(init_rdf);
+    plot_delta_P_VS_P_rec(init_rdf);
     //plot_delta_P(init_rdf);
     //plot_momenta_components(init_rdf); 
     //plot_P_rec_P_gen(init_rdf);
     //plot_delta_P_above_below_1GeV(init_rdf);
     //plot_delta_P_VS_P_rec_above_below_1GeV(init_rdf);
-    Theta_VS_momentum(init_rdf);
-    Phi_VS_momentum(init_rdf);
-    Phi_VS_Theta(init_rdf);
+   // Theta_VS_momentum(init_rdf);
+   // Phi_VS_momentum(init_rdf);
+   // Phi_VS_Theta(init_rdf);
 
     //init_rdf.Display({"p_proton_gen", "p_proton_rec", "delta_p"}, 10)->Print();
     auto end = std::chrono::high_resolution_clock::now(); // END
