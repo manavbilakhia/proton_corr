@@ -21,7 +21,7 @@
 #include <chrono>
 
 
-int isData = 0;  // 1 for real data, 0 for MC
+int isData = 1;  // 1 for real data, 0 for MC
 bool isBigStatistics = false;
 bool toFarm = false;
 
@@ -30,11 +30,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
 
-std::string root_file_path = "../data_test/NickRuns.dat_INTEGER_SECTOR.root";
+std::string root_file_path = "../data_test/nSidisRuns.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_nSidis" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
