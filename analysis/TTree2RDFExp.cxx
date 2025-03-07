@@ -30,11 +30,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
 
-std::string root_file_path = "../data_test/nSidisRuns.dat.root";
+std::string root_file_path = "../data_test/DVPi0PRuns.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_nSidis" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_DVPi0P" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -72,7 +72,7 @@ ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path)
 
 
 
-void plot_momenta_components(ROOT::RDF::RNode rdf) { // do not use loops, the graphs are too different for slicing and loopiong will lead to lazy eval
+void plot_momenta_components_proton(ROOT::RDF::RNode rdf) { // do not use loops, the graphs are too different for slicing and loopiong will lead to lazy eval
     TCanvas canvas("c2", "momenta_components", 800, 600);
     canvas.Divide(3,1);
     canvas.cd(1);
@@ -92,7 +92,7 @@ void plot_momenta_components(ROOT::RDF::RNode rdf) { // do not use loops, the gr
 
 
 
-void plot_P_rec(ROOT::RDF::RNode rdf) {
+void plot_P_rec_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c6", "P_rec", 800, 600);
     auto hist2 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_rec", "p_proton_rec; p_proton_rec (GeV); Events", 100, 0, 8), "p_proton_rec");
     hist2->Draw();
@@ -102,7 +102,7 @@ void plot_P_rec(ROOT::RDF::RNode rdf) {
 }
 
 
-void Theta_VS_momentum(ROOT::RDF::RNode rdf) {
+void Theta_VS_momentum_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c7", "Theta VS momentum", 800, 600);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 180), "p_proton_rec", "Theta_rec");
     hist2->Draw("COLZ");
@@ -111,7 +111,16 @@ void Theta_VS_momentum(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as Theta_VS_momentum.pdf" << std::endl;
 }
 
-void Theta_VS_momentum_FD_CD(ROOT::RDF::RNode rdf) {
+void Theta_VS_momentum_electron(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c7", "Theta VS momentum", 800, 600);
+    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 180), "p_electron_rec", "Theta_electron_rec");
+    hist2->Draw("COLZ");
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_electron.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum_electron.pdf" << std::endl;
+}
+
+void Theta_VS_momentum_FD_CD_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c8", "Theta VS momentum FD CD", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
@@ -125,7 +134,7 @@ void Theta_VS_momentum_FD_CD(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_CD.pdf" << std::endl;
 }
 
-void Phi_VS_momentum(ROOT::RDF::RNode rdf) {
+void Phi_VS_momentum_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c8", "Phi VS momentum", 800, 600);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec", "Phi_rec VS P_rec; Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 10), "Phi_rec",  "p_proton_rec");
     hist2->Draw("COLZ");
@@ -133,7 +142,7 @@ void Phi_VS_momentum(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as Phi_VS_momentum.pdf" << std::endl;
 }
 
-void Phi_VS_momentum_FD_CD(ROOT::RDF::RNode rdf) {
+void Phi_VS_momentum_FD_CD_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c8", "Phi VS momentum FD CD", 800, 600);
     canvas.Divide(1,2);
 
@@ -148,7 +157,7 @@ void Phi_VS_momentum_FD_CD(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as Phi_VS_momentum_FD_CD.pdf" << std::endl;
 }
 
-void Phi_VS_Theta(ROOT::RDF::RNode rdf) {
+void Phi_VS_Theta_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c9", "Phi VS Theta", 800, 600);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec", "Phi_rec VS Theta_rec; Phi_rec (deg) ;Theta_rec (deg)",  100, -200, 200, 100, 0, 180), "Phi_rec", "Theta_rec");
     hist2->Draw("COLZ");
@@ -157,7 +166,7 @@ void Phi_VS_Theta(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as Phi_VS_Theta.pdf" << std::endl;
 }
 
-void Phi_VS_Theta_FD_CD(ROOT::RDF::RNode rdf) {
+void Phi_VS_Theta_FD_CD_proton(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c10", "Phi VS Theta FD CD", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
@@ -193,7 +202,11 @@ int main() {
                         .Define("Theta_rec", "proton_rec_4_momentum.Theta()*TMath::RadToDeg()")
                         .Define("detector", [](int status) { 
                             return status < 4000 ? std::string("FD") : (status < 8000 ? std::string("CD") : std::string("NA")); 
-                        }, {"status_proton"});
+                        }, {"status_proton"})
+                        .Define("electron_rec_4_momentum", "TLorentzVector(px_electron_rec, py_electron_rec, pz_electron_rec, 0.000511)")
+                        .Define("Phi_electron_rec", "electron_rec_4_momentum.Phi()*TMath::RadToDeg()")
+                        .Define("Theta_electron_rec", "electron_rec_4_momentum.Theta()*TMath::RadToDeg()");
+                        
 
     // Print column names
     std::cout << "Columns in RDataFrame:" << std::endl;
@@ -207,16 +220,7 @@ int main() {
     //init_rdf.Filter("detector == \"FD\" && sector_proton != 1 && sector_proton != 2 && sector_proton != 3 && sector_proton != 4 && sector_proton != 5 && sector_proton != 6 ").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
-
-    plot_momenta_components(init_rdf);
-    plot_P_rec(init_rdf);
-    Theta_VS_momentum(init_rdf);
-    Theta_VS_momentum_FD_CD(init_rdf);
-    Phi_VS_momentum(init_rdf);
-    Phi_VS_momentum_FD_CD(init_rdf);
-    Phi_VS_Theta(init_rdf);
-    Phi_VS_Theta_FD_CD(init_rdf);
-
+    Theta_VS_momentum_electron(init_rdf);
     auto end = std::chrono::high_resolution_clock::now(); // END
 
     std::chrono::duration<double> elapsed = end - start;
