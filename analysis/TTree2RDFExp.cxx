@@ -113,7 +113,7 @@ void Theta_VS_momentum_proton(ROOT::RDF::RNode rdf) {
 
 void Theta_VS_momentum_electron(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c7", "Theta VS momentum", 800, 600);
-    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 180), "p_electron_rec", "Theta_electron_rec");
+    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 50), "p_electron_rec", "Theta_electron_rec");
     hist2->Draw("COLZ");
 
     canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_electron.pdf").c_str());
