@@ -30,11 +30,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
 
-std::string root_file_path = "../data_test/nSidisRuns.dat.root";
+std::string root_file_path = "../data_test/ManavTest500Runs.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_nSidis" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_test500" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -120,7 +120,7 @@ void plot_momenta_components(ROOT::RDF::RNode rdf) { // do not use loops, the gr
 
 void plot_delta_P_VS_P_rec(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c5", "delta P VS P_rec", 800, 600);
-    auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 100, 0, 1.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
+    auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 100, 0, 5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D->Draw("COLZ");
     canvas.SaveAs((OUTPUT_FOLDER + "delta_P_VS_P_rec.png").c_str());
     std::cout << "Saved 2D histogram as delta_P_VS_P_rec.png" << std::endl;
@@ -175,10 +175,10 @@ void Theta_VS_momentum(ROOT::RDF::RNode rdf) {
     TCanvas canvas("c7", "Theta VS momentum", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_gen_VS_P_gen", "Theta_gen VS P_gen; P_gen (GeV); Theta_gen (deg);", 100, 0, 5, 100, 0, 100), "p_proton_gen", "Theta_gen" );
+    auto hist1 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_gen_VS_P_gen", "Theta_gen VS P_gen; P_gen (GeV); Theta_gen (deg);", 100, 0, 7, 100, 0, 100), "p_proton_gen", "Theta_gen" );
     hist1->Draw("COLZ");
     canvas.cd(2);
-    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 5, 100, 0, 100), "p_proton_rec", "Theta_rec");
+    auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 7, 100, 0, 100), "p_proton_rec", "Theta_rec");
     hist2->Draw("COLZ");
 
     canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum.png").c_str());
@@ -395,15 +395,15 @@ int main() {
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
 
-    //plot_delta_P_VS_P_rec(init_rdf);
-    //plot_delta_P(init_rdf);
+    plot_delta_P_VS_P_rec(init_rdf);
+    plot_delta_P(init_rdf);
     //plot_delta_P_above_below_1GeV(init_rdf);
     //plot_delta_P_VS_P_rec_above_below_1GeV(init_rdf);
-    //Theta_VS_momentum(init_rdf);
-    //Phi_VS_momentum(init_rdf);
-    //Phi_VS_Theta(init_rdf);
+    Theta_VS_momentum_FD_CD(init_rdf);
+    Phi_VS_momentum_FD_CD(init_rdf);
+    Phi_VS_Theta_FD_CD(init_rdf);
     //delta_P_VS_P_rec_FD_sectors(init_rdf);
-    delta_P_VS_P_rec_FD_sectors_no_loop(init_rdf);
+    //delta_P_VS_P_rec_FD_sectors_no_loop(init_rdf);
     //delta_P_VS_P_rec_FD_CD(init_rdf);
     //Theta_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_momentum_FD_CD(init_rdf);

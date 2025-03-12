@@ -57,7 +57,7 @@ void ProcessHipo(TString inputFile) {
     float vx_prot, vy_prot, vz_prot;
     int pid_proton, status_proton, sector_proton;
 
-    TFile outFile(Form("../../data_test/%s_INTEGER_SECTOR.root", inputFile.Data()), "recreate");
+    TFile outFile(Form("../../data_test/%s.root", inputFile.Data()), "recreate");
     TTree out_tree("out_tree", "out_tree");
 
     out_tree.Branch("px_prot_gen", &px_prot_gen);
