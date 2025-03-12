@@ -39,7 +39,7 @@ def generate_lund_files(output_folder, num_files, num_events_per_file):
                 index_parent_electron = 0
                 index_daughter_elctron = 0
                 p_electron = random.uniform(2,8)  # electron momentum in GeV
-                theta_electron = random.uniform(15, 35)  # electron theta angle in degrees
+                theta_electron = random.uniform(5, 25)  # electron theta angle in degrees
                 phi_electron = random.uniform(-180, 180)
                 px_electron = p_electron * ROOT.TMath.Sin(theta_electron * ROOT.TMath.DegToRad()) * ROOT.TMath.Cos(phi_electron * ROOT.TMath.DegToRad())
                 py_electron = p_electron * ROOT.TMath.Sin(theta_electron * ROOT.TMath.DegToRad()) * ROOT.TMath.Sin(phi_electron * ROOT.TMath.DegToRad())
@@ -71,11 +71,12 @@ def generate_lund_files(output_folder, num_files, num_events_per_file):
                 vz_proton = vz_electron  # Both originate from the same vertex
                 
                 f.write(f"{index_proton} {lifetime_proton} {type_proton} {particle_id_proton} {index_parent_proton} {index_daughter_proton} {px_proton:.6f} {py_proton:.6f} {pz_proton:.6f} {e_proton:.6f} {m_protons} {vx_proton} {vy_proton} {vz_proton:.6f}\n")
-        print(f"LUND file saved: {file_path}")
+        #print(f"LUND file saved: {file_path}")
+    print(f"Generated {num_files} LUND files with {num_events_per_file} events each.")
 
 # === Example usage ===
 output_folder = "../lund_files/proton_electron_lund/"  # Directory to save files
-num_files = 1  # Number of files to generate
-num_events_per_file = 10  # Number of events in each file
+num_files = 10000  # Number of files to generate
+num_events_per_file = 10000  # Number of events in each file
 
 generate_lund_files(output_folder, num_files, num_events_per_file)
