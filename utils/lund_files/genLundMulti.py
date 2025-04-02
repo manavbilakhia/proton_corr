@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import multiprocessing
+import ROOT
 
 def generate_lund_file(file_index, output_folder, num_events_per_file):
     """
@@ -26,14 +27,14 @@ def generate_lund_file(file_index, output_folder, num_events_per_file):
         beam_energy = 10.6  
         interacted_nucleon = 2212  
         process_id = 0  
-        event_weight = np.random.uniform(0.2, 2)  
+        event_weight = ROOT.gRandom.Uniform(0.2, 2)  
 
         content.append(f"{num_particles} {mass_number_of_target} {atomic_number_of_target} {target_polarization} {beam_polarization} {beam_type} {beam_energy} {interacted_nucleon} {process_id} {event_weight}\n")
 
         # === Generate random parameters for the trigger electron ===
-        p_electron = np.random.uniform(2, 8)  
-        theta_electron = np.random.uniform(5, 25) * deg_to_rad  
-        phi_electron = np.random.uniform(-180, 180) * deg_to_rad
+        p_electron = ROOT.gRandom.Uniform(2, 8)  
+        theta_electron = ROOT.gRandom.Uniform(5, 25) * deg_to_rad  
+        phi_electron = ROOT.gRandom.Uniform(-180, 180) * deg_to_rad
         px_electron = p_electron * np.sin(theta_electron) * np.cos(phi_electron)
         py_electron = p_electron * np.sin(theta_electron) * np.sin(phi_electron)
         pz_electron = p_electron * np.cos(theta_electron)
@@ -43,9 +44,9 @@ def generate_lund_file(file_index, output_folder, num_events_per_file):
         content.append(f"1 -1 1 11 0 0 {px_electron:.6f} {py_electron:.6f} {pz_electron:.6f} {e_electron:.6f} {m_electron} 0 0 {vz_electron:.6f}\n")
 
         # === Generate random parameters for the proton ===
-        p_proton = np.random.uniform(0.3, 5)  
-        theta_proton = np.random.uniform(3, 80) * deg_to_rad  
-        phi_proton = np.random.uniform(-180, 180) * deg_to_rad
+        p_proton = ROOT.gRandom.Uniform(0.3, 5)  
+        theta_proton = ROOT.gRandom.Uniform(3, 80) * deg_to_rad  
+        phi_proton = ROOT.gRandom.Uniform(-180, 180) * deg_to_rad
         px_proton = p_proton * np.sin(theta_proton) * np.cos(phi_proton)
         py_proton = p_proton * np.sin(theta_proton) * np.sin(phi_proton)
         pz_proton = p_proton * np.cos(theta_proton)
@@ -75,7 +76,7 @@ def generate_lund_files(output_folder, num_files, num_events_per_file):
     print(f"Generated {num_files} LUND files with {num_events_per_file} events each.")
 
 # === Example usage ===
-output_folder = "../lund_files/proton_electron_lund_multithread/"
+output_folder = "/lustre24/expphy/volatile/clas12/manavb/proton_electron_lund_multithread"
 num_files = 500  
 num_events_per_file = 10000  
 
