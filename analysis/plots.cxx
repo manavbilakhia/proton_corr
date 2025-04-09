@@ -1,12 +1,14 @@
-#include <TCanvas.h>
-#include <TH1D.h>
-#include <TH2D.h>
-#include <TLine.h>
-#include <TLegend.h>
-#include <TFile.h>
-#include <TVector3.h>
-#include <ROOT/RDataFrame.hxx>
-#include <iostream>
+#include "ROOT/RDataFrame.hxx"
+#include "TH3D.h"
+#include "TH1.h"
+#include "TF1.h"
+#include "TLine.h"
+#include "TCanvas.h"
+#include "TGraphErrors.h"
+#include "TLegend.h"
+#include "TStyle.h"
+#include "TString.h"
+#include "TFile.h"
 
 void plot_delta_P(ROOT::RDF::RNode rdf,const std::string& output_folder) {
     TCanvas canvas("c1", "delta_P", 800, 600);
@@ -229,7 +231,7 @@ void delta_P_VS_P_rec_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_fold
 
 
 
-void delta_P_VS_P_rec_FD_sectors(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+void delta_P_VS_P_rec_FD_sectors_2D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     // Apply initial filter for detector
     auto rdf_filtered = rdf.Filter("detector == \"FD\"");
     // Create 3D histogram: X = p_proton_rec, Y = delta_p, Z = sector_proton
@@ -265,6 +267,186 @@ void delta_P_VS_P_rec_FD_sectors(ROOT::RDF::RNode rdf, const std::string& output
     canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_sectors.pdf").c_str());
     std::cout << "Saved 2D histograms from 3D histogram as delta_P_VS_P_rec_FD_sectors.png" << std::endl;
 }
+
+void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+    // Filter for Forward Detector (FD)
+    auto rdf_filtered = rdf.Filter("detector == \"FD\"");
+
+    // Create 3D histogram: X = p_proton_rec, Y = delta_p, Z = sector_proton
+    auto hist3D = rdf_filtered.Histo3D(
+        ROOT::RDF::TH3DModel("delta_P_VS_P_rec_FD_3D",
+                             "delta P vs P_rec vs Sector;P_rec (GeV);delta P (GeV);Sector",
+                             100, 0, 2.5,   // X-axis: P_rec
+                             100, -0.1, 0.1, // Y-axis: delta P
+                             6, 0, 7),       // Z-axis: sector (1-6)
+        "p_proton_rec", "delta_p", "sector_proton"
+    );
+
+    std::vector<double> momentum_bins = {0.25,0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0,2.25, 2.5};
+    const size_t num_bins = momentum_bins.size() - 1;
+
+    // Store TGraphErrors for each sector
+    std::vector<TGraphErrors*> sector_graphs(6, nullptr);
+    for (int i = 0; i < 6; ++i) {
+        sector_graphs[i] = new TGraphErrors();
+        sector_graphs[i]->SetName(Form("gSector%d", i + 1));
+        sector_graphs[i]->SetTitle(Form("Sector %d;Momentum Bin Center (GeV);Mean Δp (GeV)", i + 1));
+    }
+
+    // Loop over sectors
+    for (int sector = 1; sector <= 6; ++sector) {
+        TCanvas* c = new TCanvas(Form("sector_canvas_%d", sector),
+                                 Form("delta_p slices in Sector %d", sector),
+                                 1200, 800);
+        c->Divide(3, 3);
+
+        hist3D->GetZaxis()->SetRange(sector, sector);
+
+        for (size_t bin_idx = 0; bin_idx < num_bins; ++bin_idx) {
+            double p_low = momentum_bins[bin_idx];
+            double p_high = momentum_bins[bin_idx + 1];
+            double p_center = 0.5 * (p_low + p_high);
+
+            hist3D->GetXaxis()->SetRangeUser(p_low, p_high);
+            TH1* hist1D = hist3D->Project3D("y");
+
+            hist1D->SetName(Form("delta_p_sector%d_bin%zu", sector, bin_idx + 1));
+            hist1D->SetTitle(Form("Sector %d: %.2f - %.2f GeV;delta P (GeV);Counts",
+                                  sector, p_low, p_high));
+
+            c->cd(bin_idx + 1);
+            hist1D->Draw();
+
+            // Fit Gaussian in range [-0.04, 0.02]
+            TF1* fit = new TF1("gaus_fit", "gaus", -0.04, 0.02);
+            hist1D->Fit(fit, "RQ");
+
+            // Extract mean and sigma
+            double mean = fit->GetParameter(1);
+            double sigma = fit->GetParameter(2);
+
+            // Fill into sector graph
+            TGraphErrors* graph = sector_graphs[sector - 1];
+            graph->SetPoint(bin_idx, p_center, mean);
+            graph->SetPointError(bin_idx, 0.0, sigma); // No X error, only Y error
+        }
+
+        c->SaveAs((output_folder + Form("delta_p_sector%d_bins.pdf", sector)).c_str());
+        delete c;
+    }
+
+    // === Summary canvas: 6 sector graphs (black points, red y=0 line) ===
+TCanvas* summaryCanvas = new TCanvas("summaryCanvas", "Mean Δp vs Momentum Bin per Sector", 1400, 1000);
+summaryCanvas->Divide(3, 2); // 6 pads
+
+for (int i = 0; i < 6; ++i) {
+    summaryCanvas->cd(i + 1);
+
+    TGraphErrors* g = sector_graphs[i];
+    g->SetMarkerStyle(20);
+    g->SetMarkerColor(kBlack);
+    g->SetLineColor(kBlack);
+    g->Draw("AP");
+
+    gPad->SetGrid();
+
+    // Draw horizontal red line at y = 0
+    double xmin = 0.5;
+    double xmax = 2.0;
+    TLine* zeroLine = new TLine(xmin, 0.0, xmax, 0.0);
+    zeroLine->SetLineColor(kRed);
+    zeroLine->SetLineStyle(2);
+    zeroLine->SetLineWidth(2);
+    zeroLine->Draw("SAME");
+}
+
+summaryCanvas->SaveAs((output_folder + "mean_delta_p_vs_momentum_bin_by_sector.pdf").c_str());
+
+std::cout << "Saved summary plot with black markers and red y=0 line.\n";
+}
+
+
+void delta_P_VS_P_rec_CD_1D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+    // Filter for Central Detector (CD)
+    auto rdf_filtered = rdf.Filter("detector == \"CD\"");
+
+    // Create 2D histogram: X = p_proton_rec, Y = delta_p
+    auto hist2D = rdf_filtered.Histo2D(
+        ROOT::RDF::TH2DModel("delta_P_VS_P_rec_CD_2D",
+                             "delta P vs P_rec [CD];P_rec (GeV);delta P (GeV)",
+                             100, 0, 2.5,
+                             100, -0.1, 0.1),
+        "p_proton_rec", "delta_p"
+    );
+
+    // Fine momentum binning from 0.25 to 1.25 in steps of 0.1
+    std::vector<double> momentum_bins;
+    for (double p = 0.25; p <= 1.25 + 1e-6; p += 0.1) {
+        momentum_bins.push_back(p);
+    }
+    const size_t num_bins = momentum_bins.size() - 1;
+
+    // Create canvas for 1D plots
+    size_t nCols = 4;
+    size_t nRows = (num_bins + nCols - 1) / nCols;
+    TCanvas* c = new TCanvas("cd_canvas", "Central Detector Δp in Momentum Bins", 300 * nCols, 300 * nRows);
+    c->Divide(nCols, nRows);
+
+    // Prepare graph for mean vs momentum bin center
+    TGraphErrors* gCD = new TGraphErrors();
+    gCD->SetName("gCD");
+    gCD->SetTitle("Central Detector: Mean Δp vs Momentum Bin;Momentum Bin Center (GeV);Mean Δp (GeV)");
+
+    for (size_t bin_idx = 0; bin_idx < num_bins; ++bin_idx) {
+        double p_low = momentum_bins[bin_idx];
+        double p_high = momentum_bins[bin_idx + 1];
+        double p_center = 0.5 * (p_low + p_high);
+
+        hist2D->GetXaxis()->SetRangeUser(p_low, p_high);
+
+        TH1* hist1D = hist2D->ProjectionY(Form("delta_p_bin%zu", bin_idx + 1));
+        hist1D->SetTitle(Form("CD: %.2f - %.2f GeV;delta P (GeV);Counts", p_low, p_high));
+
+        c->cd(bin_idx + 1);
+        hist1D->Draw();
+
+        // Gaussian fit in range [-0.04, 0.02]
+        TF1* fit = new TF1("gaus_fit", "gaus", -0.04, 0.04);
+        hist1D->Fit(fit, "RQ");
+
+        double mean = fit->GetParameter(1);
+        double sigma = fit->GetParameter(2);
+
+        gCD->SetPoint(bin_idx, p_center, mean);
+        gCD->SetPointError(bin_idx, 0.0, sigma);
+    }
+
+    c->SaveAs((output_folder + "delta_p_CD_bins_fine.pdf").c_str());
+    delete c;
+
+    // === Summary plot ===
+    TCanvas* summaryCanvas = new TCanvas("summaryCanvas_CD", "CD Mean Δp vs Momentum Bin (fine bins)", 800, 600);
+    summaryCanvas->cd();
+
+    gCD->SetMarkerStyle(20);
+    gCD->SetMarkerColor(kBlack);
+    gCD->SetLineColor(kBlack);
+    gCD->Draw("AP");
+    gPad->SetGrid();
+
+    // Red horizontal line at y = 0
+    TLine* zeroLine = new TLine(0.25, 0.0, 1.25, 0.0);
+    zeroLine->SetLineColor(kRed);
+    zeroLine->SetLineStyle(2);
+    zeroLine->SetLineWidth(2);
+    zeroLine->Draw("SAME");
+
+    summaryCanvas->SaveAs((output_folder + "mean_delta_p_vs_momentum_bin_CD_fine.pdf").c_str());
+
+    std::cout << "Saved fine-binned central detector Δp plots and summary with fit mean/sigma.\n";
+}
+
+
 
 void delta_P_VS_P_rec_FD_sectors_no_loop(ROOT::RDF::RNode rdf, const std::string& output_folder){
     auto rdf_filtered = rdf.Filter("detector == \"FD\"");

@@ -10,12 +10,12 @@
 #SBATCH --mem-per-cpu=5000
 #SBATCH --time=24:00:00
 
-source /u/home/bulgakov/myenv_clas12.sh
+source /u/home/manavb/myenv_clas12.sh
 
 # Navigate to the working directory (if needed)
-cd /w/hallb-scshelf2102/clas12/bulgakov/projects/momcor/proton_corr/utils/hipo2root
+cd /w/hallb-scshelf2102/clas12/manavb/grad/momcor/proton_corr/utils/hipo2root
 
 
 
 # Run the executable with the job array index (if needed)
-srun clas12root -q -b hipo2root.c  --in=NickRuns.dat >> logs/logNick
+srun clas12root -q -b hipo2root.c  --in=andrey_runs_test.dat

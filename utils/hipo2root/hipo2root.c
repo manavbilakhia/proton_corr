@@ -61,7 +61,7 @@ void ProcessHipo(TString inputFile) {
     float px_electron_rec, py_electron_rec, pz_electron_rec, p_electron_rec;
     int pid_electron, status_electron, sector_electron;
 
-    TFile outFile(Form("../../data_test/%s.root", inputFile.Data()), "recreate");
+    TFile outFile(Form("../../data/%s.root", inputFile.Data()), "recreate");
     TTree out_tree("out_tree", "out_tree");
 
     //For proton

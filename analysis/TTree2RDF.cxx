@@ -31,11 +31,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
 
-std::string root_file_path = "../data_test/ManavTest500Runs.dat.root";
+std::string root_file_path = "../data/andrey_runs_test.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_test500" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_andrey_runs_test" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -124,9 +124,10 @@ int main() {
     //Theta_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_Theta_FD_CD(init_rdf);
-    //delta_P_VS_P_rec_FD_sectors(init_rdf);
-    //delta_P_VS_P_rec_FD_sectors_no_loop(init_rdf);
-    //delta_P_VS_P_rec_FD_CD(init_rdf);
+    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER);
+    delta_P_VS_P_rec_FD_sectors_2D(init_rdf,OUTPUT_FOLDER);
+    delta_P_VS_P_rec_CD_1D(init_rdf,OUTPUT_FOLDER);
+    delta_P_VS_P_rec_FD_CD(init_rdf,OUTPUT_FOLDER);
     //Theta_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_Theta_FD_CD(init_rdf);
@@ -136,8 +137,8 @@ int main() {
     //gen_P_VS_rec_P(init_rdf);
     //plot_delta_P_VS_P_rec(init_rdf);
 
-    plot_momenta_components(init_rdf, OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_CD(init_rdf, OUTPUT_FOLDER);
+    //plot_momenta_components(init_rdf, OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_FD_CD(init_rdf, OUTPUT_FOLDER);
 
     //init_rdf.Display({"p_proton_gen", "p_proton_rec", "delta_p"}, 10)->Print();
     auto end = std::chrono::high_resolution_clock::now(); // END

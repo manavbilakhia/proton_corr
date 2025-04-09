@@ -1,23 +1,37 @@
 import os
 import math
 import ROOT
-import concurrent.futures
+from concurrent.futures import ProcessPoolExecutor
 
-def extract_momentum_from_lund(file_path):
+ROOT.gROOT.SetBatch(True)
+
+def parse_lund_momentum(line):
+    tokens = line.split()
+    return map(float, tokens[6:9])
+
+def extract_momentum_from_lund(file_path, max_lines=None, return_raw=False):
     electron_results = []
     proton_results = []
+    raw_lines = []
 
     with open(file_path, 'r') as f:
         lines = []
+        line_count = 0
         for line in f:
+            if max_lines and line_count >= max_lines:
+                break
             lines.append(line.strip())
-            if len(lines) == 3:
+            line_count += 1
+            if len(lines) == 5:
                 try:
-                    electron_line = lines[1].split()
-                    proton_line = lines[2].split()
+                    electron_line = lines[1]
+                    proton_line = lines[4]
 
-                    e_px, e_py, e_pz = map(float, electron_line[6:9])
-                    p_px, p_py, p_pz = map(float, proton_line[6:9])
+                    if return_raw:
+                        raw_lines.append((electron_line, proton_line))
+
+                    e_px, e_py, e_pz = parse_lund_momentum(electron_line)
+                    p_px, p_py, p_pz = parse_lund_momentum(proton_line)
 
                     e_P = math.sqrt(e_px**2 + e_py**2 + e_pz**2)
                     p_P = math.sqrt(p_px**2 + p_py**2 + p_pz**2)
@@ -35,20 +49,22 @@ def extract_momentum_from_lund(file_path):
                     pass
                 lines = []
 
+    if return_raw:
+        return electron_results, proton_results, raw_lines
     return electron_results, proton_results
 
 def process_all_lund_files():
-    directory = "/lustre24/expphy/volatile/clas12/manavb/proton_electron_lund_multithread"
+    directory = "/volatile/clas12/kenjo/hepgen/lund01/"
     files = [
-        os.path.join(directory, f)
-        for f in os.listdir(directory)
-        if f.endswith(".lund")
+        os.path.join(directory, f.name)
+        for f in os.scandir(directory)
+        if f.name.endswith(".lund")
     ]
 
     electron_data_all = []
     proton_data_all = []
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with ProcessPoolExecutor() as executor:
         futures = executor.map(extract_momentum_from_lund, files)
         for electron_data, proton_data in futures:
             electron_data_all.extend(electron_data)
@@ -118,5 +134,16 @@ def fill_and_plot_histograms(electron_data, proton_data):
     save_canvas(proton_phi_theta, "proton_phi_vs_theta.png")
 
 if __name__ == "__main__":
-    electron_data, proton_data = process_all_lund_files()
-    fill_and_plot_histograms(electron_data, proton_data)
+    TEST_MODE = False  # Set to False to process all files
+
+    if TEST_MODE:
+        test_file = "/volatile/clas12/kenjo/hepgen/lund01/hepgen-0000.lund"  # Replace with actual test filename
+        electron_data, proton_data, raw_lines = extract_momentum_from_lund(test_file, max_lines=50, return_raw=True)
+
+        for e_line, p_line in raw_lines:
+            print("Electron line:", e_line)
+            print("Proton line:  ", p_line)
+            print("---")
+    else:
+        electron_data, proton_data = process_all_lund_files()
+        fill_and_plot_histograms(electron_data, proton_data)
