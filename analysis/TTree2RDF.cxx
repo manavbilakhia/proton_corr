@@ -31,11 +31,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
 
-std::string root_file_path = "../data/andrey_runs_test.dat.root";
+std::string root_file_path = "../data/andrey_runs_FULL.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_andrey_runs_test" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_andrey_runs_FULL" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -121,25 +121,28 @@ int main() {
     //plot_delta_P(init_rdf);
     //plot_delta_P_above_below_1GeV(init_rdf);
     //plot_delta_P_VS_P_rec_above_below_1GeV(init_rdf);
-    //Theta_VS_momentum_FD_CD(init_rdf);
-    //Phi_VS_momentum_FD_CD(init_rdf);
-    //Phi_VS_Theta_FD_CD(init_rdf);
+    //Theta_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
+    //Phi_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
+    //Phi_VS_Theta_FD_CD(init_rdf,OUTPUT_FOLDER);
     delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_sectors_2D(init_rdf,OUTPUT_FOLDER);
-    delta_P_VS_P_rec_CD_1D(init_rdf,OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_CD(init_rdf,OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_FD_sectors_2D(init_rdf,OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_CD_1D(init_rdf,OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_FD_CD(init_rdf,OUTPUT_FOLDER);
     //Theta_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_momentum_FD_CD(init_rdf);
     //Phi_VS_Theta_FD_CD(init_rdf);
-    //plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf);
+    //plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
     //gen_theta_VS_rec_theta(init_rdf);
     //gen_phi_VS_rec_phi(init_rdf);
     //gen_P_VS_rec_P(init_rdf);
     //plot_delta_P_VS_P_rec(init_rdf);
-
     //plot_momenta_components(init_rdf, OUTPUT_FOLDER);
     //delta_P_VS_P_rec_FD_CD(init_rdf, OUTPUT_FOLDER);
 
+    //delta_P_VS_P_rec_FD_sectors_theta_bins_1D(init_rdf, OUTPUT_FOLDER);
+    //plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
+
+    
     //init_rdf.Display({"p_proton_gen", "p_proton_rec", "delta_p"}, 10)->Print();
     auto end = std::chrono::high_resolution_clock::now(); // END
 

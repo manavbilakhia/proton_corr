@@ -13,9 +13,9 @@
 source /u/home/manavb/myenv_clas12.sh
 
 # Navigate to the working directory (if needed)
-cd /w/hallb-scshelf2102/clas12/manavb/grad/momcor/proton_corr/utils/hipo2root
+cd /w/hallb-scshelf2102/clas12/bulgakov/projects/momcor/proton_corr/utils/hipo2root
 
 
 
 # Run the executable with the job array index (if needed)
-srun clas12root -q -b hipo2root.c  --in=andrey_runs_test.dat
+srun clas12root -q -b hipo2root.c  --in=andrey_runs_FULL.dat

@@ -9,6 +9,8 @@
 #include "TStyle.h"
 #include "TString.h"
 #include "TFile.h"
+#include "THnSparse.h"  // Needed for THnSparseD
+#include "TArrayD.h"
 
 void plot_delta_P(ROOT::RDF::RNode rdf,const std::string& output_folder) {
     TCanvas canvas("c1", "delta_P", 800, 600);
@@ -84,18 +86,18 @@ void plot_delta_P_VS_P_rec_above_below_1GeV(ROOT::RDF::RNode rdf, const std::str
 }
 
 void plot_delta_P_VS_P_rec_FD_Theta_below_above(ROOT::RDF::RNode rdf, const std::string& output_folder){
-    auto rdf_above = rdf.Filter("(Theta_rec > 27) && detector == \"FD\" ");
-    auto rdf_below = rdf.Filter("(Theta_rec < 27) && detector == \"FD\" ");
+    auto rdf_above = rdf.Filter("(Theta_rec > 28) && detector == \"FD\" ");
+    auto rdf_below = rdf.Filter("(Theta_rec < 28) && detector == \"FD\" ");
     TCanvas canvas("c1", "delta_P", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist2D_above = rdf_above.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_above_Theta", "delta P vs P_rec for theta more than 27 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
+    auto hist2D_above = rdf_above.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_above_Theta", "delta P vs P_rec for theta > 28 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D_above->Draw("COLZ");
     canvas.cd(2);
-    auto hist2D_below = rdf_below.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_below_Theta", "delta P vs P_rec for theta less than 27 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
+    auto hist2D_below = rdf_below.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_below_Theta", "delta P vs P_rec for theta < 28 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D_below->Draw("COLZ");
-    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_Theta_below_above.png").c_str());
-    std::cout << "Saved 1D histogram as delta_P_VS_P_rec_FD_Theta_below_above.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_Theta_below_above_28deg.png").c_str());
+    std::cout << "Saved 1D histogram as delta_P_VS_P_rec_FD_Theta_below_above_28deg.png" << std::endl;
 }
 
 void plot_P_rec_P_gen(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -270,7 +272,7 @@ void delta_P_VS_P_rec_FD_sectors_2D(ROOT::RDF::RNode rdf, const std::string& out
 
 void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     // Filter for Forward Detector (FD)
-    auto rdf_filtered = rdf.Filter("detector == \"FD\"");
+    auto rdf_filtered = rdf.Filter("detector == \"FD\" && Theta_rec >= 28");
 
     // Create 3D histogram: X = p_proton_rec, Y = delta_p, Z = sector_proton
     auto hist3D = rdf_filtered.Histo3D(
@@ -282,7 +284,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
         "p_proton_rec", "delta_p", "sector_proton"
     );
 
-    std::vector<double> momentum_bins = {0.25,0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0,2.25, 2.5};
+    std::vector<double> momentum_bins = {0.25,0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0,2.25};
     const size_t num_bins = momentum_bins.size() - 1;
 
     // Store TGraphErrors for each sector
@@ -310,15 +312,15 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
             hist3D->GetXaxis()->SetRangeUser(p_low, p_high);
             TH1* hist1D = hist3D->Project3D("y");
 
-            hist1D->SetName(Form("delta_p_sector%d_bin%zu", sector, bin_idx + 1));
-            hist1D->SetTitle(Form("Sector %d: %.2f - %.2f GeV;delta P (GeV);Counts",
+            hist1D->SetName(Form("Theta>28_delta_p_sector%d_bin%zu", sector, bin_idx + 1));
+            hist1D->SetTitle(Form("Theta > 28 Sector %d: %.2f - %.2f GeV;delta P (GeV);Counts",
                                   sector, p_low, p_high));
 
             c->cd(bin_idx + 1);
             hist1D->Draw();
 
             // Fit Gaussian in range [-0.04, 0.02]
-            TF1* fit = new TF1("gaus_fit", "gaus", -0.04, 0.02);
+            TF1* fit = new TF1("gaus_fit", "gaus", -0.08, 0.04);
             hist1D->Fit(fit, "RQ");
 
             // Extract mean and sigma
@@ -331,7 +333,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
             graph->SetPointError(bin_idx, 0.0, sigma); // No X error, only Y error
         }
 
-        c->SaveAs((output_folder + Form("delta_p_sector%d_bins.pdf", sector)).c_str());
+        c->SaveAs((output_folder + Form("HIGH_THETA_delta_p_sector%d_bins.pdf", sector)).c_str());
         delete c;
     }
 
@@ -351,8 +353,8 @@ for (int i = 0; i < 6; ++i) {
     gPad->SetGrid();
 
     // Draw horizontal red line at y = 0
-    double xmin = 0.5;
-    double xmax = 2.0;
+    double xmin = 0.25;
+    double xmax = 2.5;
     TLine* zeroLine = new TLine(xmin, 0.0, xmax, 0.0);
     zeroLine->SetLineColor(kRed);
     zeroLine->SetLineStyle(2);
@@ -360,9 +362,76 @@ for (int i = 0; i < 6; ++i) {
     zeroLine->Draw("SAME");
 }
 
-summaryCanvas->SaveAs((output_folder + "mean_delta_p_vs_momentum_bin_by_sector.pdf").c_str());
+summaryCanvas->SaveAs((output_folder + "HIGH_THETA_mean_delta_p_vs_momentum_bin_by_sector.pdf").c_str());
 
 std::cout << "Saved summary plot with black markers and red y=0 line.\n";
+}
+
+
+
+void delta_P_VS_P_rec_FD_sectors_theta_bins_1D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+    // Define momentum bins
+    std::vector<double> momentum_bins = {0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5};
+    const size_t num_bins = momentum_bins.size() - 1;
+
+    // Define theta bin filters
+   
+    auto rdf_theta_less_20 = rdf.Filter("detector == \"FD\" && Theta_rec < 20");
+    auto rdf_theta_20_30 = rdf.Filter("detector == \"FD\" && Theta_rec >= 20 && Theta_rec < 30");
+    auto rdf_theta_30_and_more = rdf.Filter("detector == \"FD\" && Theta_rec >= 30");
+
+    auto rdf_theta_29_and_more = rdf.Filter("detector == \"FD\" && Theta_rec >= 29");
+    auto rdf_theta_less_29 = rdf.Filter("detector == \"FD\" && Theta_rec <= 29");
+
+    // Helper lambda to process a single (theta-filtered) RDF
+    auto process_theta_bin = [&](ROOT::RDF::RNode filtered_rdf, const std::string& theta_label) {
+        // Create 3D histogram for sector, p, delta_p
+        auto hist3D = filtered_rdf.Histo3D(
+            ROOT::RDF::TH3DModel(
+                ("delta_P_VS_P_rec_FD_3D_" + theta_label).c_str(),
+                ("delta P vs P_rec vs Sector (" + theta_label + ");P_rec (GeV);delta P (GeV);Sector").c_str(),
+                100, 0.0, 2.5,
+                100, -0.1, 0.1,
+                6, 0, 7
+            ),
+            "p_proton_rec", "delta_p", "sector_proton"
+        );
+
+        for (int sector = 1; sector <= 6; ++sector) {
+            TCanvas* c = new TCanvas(Form("canvas_theta_%s_sector_%d", theta_label.c_str(), sector),
+                                     Form("Theta %s, Sector %d", theta_label.c_str(), sector),
+                                     1200, 800);
+            c->Divide(3, 3);
+
+            hist3D->GetZaxis()->SetRange(sector, sector);
+
+            for (size_t bin_idx = 0; bin_idx < num_bins; ++bin_idx) {
+                double p_low = momentum_bins[bin_idx];
+                double p_high = momentum_bins[bin_idx + 1];
+
+                hist3D->GetXaxis()->SetRangeUser(p_low, p_high);
+
+                TH1* hist1D = hist3D->Project3D("y");
+                hist1D->SetName(Form("delta_p_%s_sector%d_bin%zu", theta_label.c_str(), sector, bin_idx + 1));
+                hist1D->SetTitle(Form("Theta %s | Sector %d | %.2f - %.2f GeV;delta P (GeV);Counts",
+                                      theta_label.c_str(), sector, p_low, p_high));
+
+                c->cd(bin_idx + 1);
+                hist1D->Draw();
+            }
+
+            c->SaveAs((output_folder + Form("delta_p_%s_sector%d_bins.pdf", theta_label.c_str(), sector)).c_str());
+            delete c;
+        }
+    };
+
+    // Process each theta bin individually (no loops over theta ranges)
+ 
+    process_theta_bin(rdf_theta_less_29, "theta<29");
+    process_theta_bin(rdf_theta_29_and_more, "theta>29");
+    
+
+    std::cout << "Saved Δp plots for 3 theta bins × 6 sectors = 18 plots (PDF).\n";
 }
 
 
@@ -411,7 +480,7 @@ void delta_P_VS_P_rec_CD_1D(ROOT::RDF::RNode rdf, const std::string& output_fold
         hist1D->Draw();
 
         // Gaussian fit in range [-0.04, 0.02]
-        TF1* fit = new TF1("gaus_fit", "gaus", -0.04, 0.04);
+        TF1* fit = new TF1("gaus_fit", "gaus", -0.1, 0.1);
         hist1D->Fit(fit, "RQ");
 
         double mean = fit->GetParameter(1);
@@ -476,6 +545,8 @@ void delta_P_VS_P_rec_FD_sectors_no_loop(ROOT::RDF::RNode rdf, const std::string
 
 
 }
+
+// -------------------------------------Don't need -------------------------------------//
 
 void gen_theta_VS_rec_theta(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     TCanvas canvas("c11", "gen_theta_VS_rec_theta", 800, 600);
