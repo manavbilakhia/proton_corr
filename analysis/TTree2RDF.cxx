@@ -87,8 +87,8 @@ int main() {
     auto init_rdf = rdf//.Filter(p_proton_gen > 0.0)
                         //.Filter(p_proton_rec > 0.0)
                         .Define("delta_p", "p_proton_rec - p_proton_gen")
-                        .Define("proton_rec_4_momentum", "TLorentzVector(px_prot_rec, py_prot_rec, pz_prot_rec, 0.938272)")
-                        .Define("proton_gen_4_momentum", "TLorentzVector(px_prot_gen, py_prot_gen, pz_prot_gen, 0.938272)")
+                        .Define("proton_rec_4_momentum", "TLorentzVector(px_prot_rec, py_prot_rec, pz_prot_rec, 0.938272)")// const number is mass of proton
+                        .Define("proton_gen_4_momentum", "TLorentzVector(px_prot_gen, py_prot_gen, pz_prot_gen, 0.938272)")// const number is mass of proton
                         .Define("Phi_rec", "proton_rec_4_momentum.Phi()*TMath::RadToDeg()")  
                         .Define("Phi_gen", "proton_gen_4_momentum.Phi()*TMath::RadToDeg()")
                         .Define("Theta_rec", "proton_rec_4_momentum.Theta()*TMath::RadToDeg()")
@@ -101,14 +101,20 @@ int main() {
                         .Define("Phi_electron_rec", "electron_rec_4_momentum.Phi()*TMath::RadToDeg()")
                         .Define("Phi_electron_gen", "electron_gen_4_momentum.Phi()*TMath::RadToDeg()")
                         .Define("Theta_electron_rec", "electron_rec_4_momentum.Theta()*TMath::RadToDeg()")
-                        .Define("Theta_electron_gen", "electron_gen_4_momentum.Theta()*TMath::RadToDeg()");
+                        .Define("Theta_electron_gen", "electron_gen_4_momentum.Theta()*TMath::RadToDeg()")
+                        .Define("E_proton_rec", "sqrt(px_prot_rec*px_prot_rec + py_prot_rec*py_prot_rec + pz_prot_rec*pz_prot_rec + 0.938272*0.938272)") // const number is mass of proton
+                        .Define("E_proton_gen", "sqrt(px_prot_gen*px_prot_gen + py_prot_gen*py_prot_gen + pz_prot_gen*pz_prot_gen + 0.938272*0.938272)") // const number is mass of proton
+                        .Define("delta_E", "E_proton_rec - E_proton_gen")
+                        .Define("dp_norm", "delta_p /p_proton_rec");
+
+
                 
 
     // Print column names
-    //std::cout << "Columns in RDataFrame:" << std::endl;
-    //for (const auto &col : init_rdf.GetColumnNames()) {
-    //    std::cout << col << std::endl;
-    //}
+    std::cout << "Columns in RDataFrame:" << std::endl;
+    for (const auto &col : init_rdf.GetColumnNames()) {
+        std::cout << col << std::endl;
+    }
      
     //init_rdf.Filter("delta_p == 0").Display()->Print();
     //init_rdf.Display({"detector", "status_proton", "sector_proton"}, 200)->Print();
@@ -124,7 +130,10 @@ int main() {
     //Theta_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
     //Phi_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
     //Phi_VS_Theta_FD_CD(init_rdf,OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER);
+    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", true);
+    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", false);
+    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", true);
+    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", false);
     //delta_P_VS_P_rec_FD_sectors_2D(init_rdf,OUTPUT_FOLDER);
     //delta_P_VS_P_rec_CD_1D(init_rdf,OUTPUT_FOLDER);
     //delta_P_VS_P_rec_FD_CD(init_rdf,OUTPUT_FOLDER);
