@@ -285,20 +285,20 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
     auto hist3D = normalized
         ? rdf_filtered.Histo3D(
             ROOT::RDF::TH3DModel("delta_p/p_VS_P_rec_FD_3D",
-                                 "delta_p/p vs P_rec vs Sector;P_rec (GeV);delta_p/p (GeV);Sector",
+                                 "delta_p/p vs P_rec vs Sector;P_rec (GeV);delta_p/p;Sector",
                                  100, 0, 2.5,
-                                 100, -0.15, 0.1,
+                                 100, -0.2, 0.1,
                                  6, 0, 7),
             "p_proton_rec", "dp_norm", "sector_proton")
         : rdf_filtered.Histo3D(
             ROOT::RDF::TH3DModel("delta_P_VS_P_rec_FD_3D",
-                                 "delta P vs P_rec vs Sector;P_rec (GeV);delta P (GeV);Sector",
+                                 "delta P vs P_rec vs Sector;P_rec (GeV/c);delta P (GeV/c);Sector",
                                  100, 0, 2.5,
                                  100, -0.1, 0.1,
                                  6, 0, 7),
             "p_proton_rec", "delta_p", "sector_proton");
 
-    std::vector<double> momentum_bins = {0.4, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25};
+    std::vector<double> momentum_bins = {0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25}; // new bins
     const size_t num_bins = momentum_bins.size() - 1;
 
     std::vector<TGraphErrors*> sector_graphs(6, nullptr);
@@ -312,7 +312,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
         TCanvas* c = new TCanvas(Form("sector_canvas_%d", sector),
                                  Form("%s slices in Sector %d", dp_Or_dpp.c_str(), sector),
                                  1200, 800);
-        c->Divide(3, 3);
+        c->Divide(5, 5);
 
         hist3D->GetZaxis()->SetRange(sector, sector);
 
@@ -337,7 +337,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
             c->cd(bin_idx + 1);
             hist1D->Draw();
 
-            TF1* fit_init = new TF1("gaus_init", "gaus", -0.12, 0.01);
+            TF1* fit_init = new TF1("gaus_init", "gaus", -0.2, 0.01);
             hist1D->Fit(fit_init, "RQ0");
             
             double mean_init = fit_init->GetParameter(1);

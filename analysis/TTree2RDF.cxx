@@ -111,10 +111,10 @@ int main() {
                 
 
     // Print column names
-    std::cout << "Columns in RDataFrame:" << std::endl;
-    for (const auto &col : init_rdf.GetColumnNames()) {
-        std::cout << col << std::endl;
-    }
+   //std::cout << "Columns in RDataFrame:" << std::endl;
+   //for (const auto &col : init_rdf.GetColumnNames()) {
+   //    std::cout << col << std::endl;
+   //}
      
     //init_rdf.Filter("delta_p == 0").Display()->Print();
     //init_rdf.Display({"detector", "status_proton", "sector_proton"}, 200)->Print();
@@ -132,8 +132,8 @@ int main() {
     //Phi_VS_Theta_FD_CD(init_rdf,OUTPUT_FOLDER);
     delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", true);
     delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", false);
-    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", true);
-    delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", false);
+    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", true);
+    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", false);
     //delta_P_VS_P_rec_FD_sectors_2D(init_rdf,OUTPUT_FOLDER);
     //delta_P_VS_P_rec_CD_1D(init_rdf,OUTPUT_FOLDER);
     //delta_P_VS_P_rec_FD_CD(init_rdf,OUTPUT_FOLDER);
