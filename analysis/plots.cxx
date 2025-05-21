@@ -503,7 +503,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
     std::cout << "Saved summary plot with black markers and red y=0 line.\n";
 }
 
-void plot_theta_slices_2D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+void plot_theta_slices_2D(ROOT::RDF::RNode rdf, const std::string& output_folder) { // needs to theta vs delta p instead of theta vs p. define momentum bining
     auto rdf_theta = rdf.Filter("detector == \"FD\" && Theta_rec >= 28 && Theta_rec < 30");
 
     std::vector<std::pair<double, double>> p_bins = {
