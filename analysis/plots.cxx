@@ -271,6 +271,122 @@ void delta_P_VS_P_rec_FD_sectors_2D(ROOT::RDF::RNode rdf, const std::string& out
     std::cout << "Saved 2D histograms from 3D histogram as delta_P_VS_P_rec_FD_sectors.png" << std::endl;
 }
 
+void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std::string& output_folder, const bool normalized) {
+    std::string dp_Or_dpp = normalized ? "delta_p_norm" : "delta_p";
+
+    // Define theta bin edges
+    std::vector<std::pair<double, double>> theta_bins = {
+       {0,25} ,{25,35}, {28,35}
+    //{0, 26.5} , {26.5, 29}, {26.5, 31}, {26.5, 33}, {26.5, 35}
+};
+
+    // Momentum bin edges
+    std::vector<double> momentum_bins = {0.4, 0.43, 0.45, 0.47,0.5,
+                                         0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25};
+    const size_t num_bins = momentum_bins.size() - 1;
+
+    for (size_t theta_idx = 0; theta_idx < theta_bins.size(); ++theta_idx) {
+        double theta_min = theta_bins[theta_idx].first;
+        double theta_max = theta_bins[theta_idx].second;
+        std::string theta_label = Form("theta_%.0f_%.0f", theta_min, theta_max);
+
+        // Filter by theta and detector
+        ROOT::RDF::RNode rdf_filtered = rdf.Filter(Form("detector == \"FD\" && Theta_rec >= %.2f && Theta_rec < %.2f", theta_min, theta_max));
+
+        auto hist3D = normalized
+            ? rdf_filtered.Histo3D(
+                  ROOT::RDF::TH3DModel("delta_p/p_VS_P_rec_FD_3D",
+                                       "delta_p/p vs P_rec vs Sector;P_rec (GeV);delta_p/p;Sector",
+                                       100, 0, 2.5, 100, -0.2, 0.1, 6, 0, 7),
+                  "p_proton_rec", "dp_norm", "sector_proton")
+            : rdf_filtered.Histo3D(
+                  ROOT::RDF::TH3DModel("delta_P_VS_P_rec_FD_3D",
+                                       "delta P vs P_rec vs Sector;P_rec (GeV/c);delta P (GeV/c);Sector",
+                                       100, 0, 2.5, 100, -0.1, 0.1, 6, 0, 7),
+                  "p_proton_rec", "delta_p", "sector_proton");
+
+        std::vector<TGraphErrors*> sector_graphs(6, nullptr);
+        for (int i = 0; i < 6; ++i) {
+            sector_graphs[i] = new TGraphErrors();
+            sector_graphs[i]->SetName(Form("gSector%d_%s", i + 1, theta_label.c_str()));
+            sector_graphs[i]->SetTitle(Form("Sector %d (%s);Momentum Bin Center (GeV/c);Mean %s (GeV/c)", i + 1, theta_label.c_str(), dp_Or_dpp.c_str()));
+        }
+
+        for (int sector = 1; sector <= 6; ++sector) {
+            TCanvas* c = new TCanvas(Form("sector_canvas_%d_%s", sector, theta_label.c_str()),
+                                     Form("%s slices in Sector %d, Theta [%.0f, %.0f]", dp_Or_dpp.c_str(), sector, theta_min, theta_max),
+                                     1200, 800);
+            c->Divide(5, 5);
+
+            hist3D->GetZaxis()->SetRange(sector, sector);
+
+            for (size_t bin_idx = 0; bin_idx < num_bins; ++bin_idx) {
+                double p_low = momentum_bins[bin_idx];
+                double p_high = momentum_bins[bin_idx + 1];
+                double p_center = 0.5 * (p_low + p_high);
+
+                hist3D->GetXaxis()->SetRangeUser(p_low, p_high);
+                TH1* hist1D = hist3D->Project3D("y");
+
+                hist1D->SetName(Form("%s_%s_sector%d_bin%zu", theta_label.c_str(), dp_Or_dpp.c_str(), sector, bin_idx + 1));
+                hist1D->SetTitle(Form("Theta [%.0f,%.0f] Sector %d: %.2f–%.2f GeV;%s (GeV/c);Counts",
+                                      theta_min, theta_max, sector, p_low, p_high, dp_Or_dpp.c_str()));
+
+                c->cd(bin_idx + 1);
+                hist1D->Draw();
+
+                TF1* fit_init = new TF1("gaus_init", "gaus", -0.2, 0.01);
+                hist1D->Fit(fit_init, "RQ0");
+
+                double mean_init = fit_init->GetParameter(1);
+                double sigma_init = fit_init->GetParameter(2);
+
+                double fit_min = mean_init - sigma_init;
+                double fit_max = mean_init + sigma_init;
+                TF1* fit_refined = new TF1("gaus_refined", "gaus", fit_min, fit_max);
+                hist1D->Fit(fit_refined, "RQ");
+
+                double mean = fit_refined->GetParameter(1);
+                double sigma = fit_refined->GetParameter(2);
+
+                TGraphErrors* graph = sector_graphs[sector - 1];
+                graph->SetPoint(bin_idx, p_center, mean);
+                graph->SetPointError(bin_idx, 0.0, sigma);
+            }
+
+            c->SaveAs((output_folder + Form("%s_%s_sector%d_bins.pdf", theta_label.c_str(), dp_Or_dpp.c_str(), sector)).c_str());
+            delete c;
+        }
+
+        // Summary canvas
+        TCanvas* summaryCanvas = new TCanvas(Form("summaryCanvas_%s", theta_label.c_str()),
+                                             Form("Mean %s vs Momentum Bin per Sector (%s)", dp_Or_dpp.c_str(), theta_label.c_str()), 1400, 1000);
+        summaryCanvas->Divide(3, 2);
+
+        for (int i = 0; i < 6; ++i) {
+            summaryCanvas->cd(i + 1);
+            TGraphErrors* g = sector_graphs[i];
+            g->SetMarkerStyle(20);
+            g->SetMarkerColor(kBlack);
+            g->SetLineColor(kBlack);
+            g->Draw("AP");
+
+            gPad->SetGrid();
+
+            double xmin = 0.25;
+            double xmax = 2.5;
+            TLine* zeroLine = new TLine(xmin, 0.0, xmax, 0.0);
+            zeroLine->SetLineColor(kRed);
+            zeroLine->SetLineStyle(2);
+            zeroLine->SetLineWidth(2);
+            zeroLine->Draw("SAME");
+        }
+
+        summaryCanvas->SaveAs((output_folder + theta_label + "_mean_" + dp_Or_dpp + "_vs_momentum_bin_by_sector.pdf").c_str());
+        std::cout << "Saved summary plot for theta bin [" << theta_min << ", " << theta_max << ")\n";
+    }
+}
+
 
 void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& output_folder, const std::string& thetaBin, const bool normalized) {
     std::string dp_Or_dpp = normalized ? "delta_p_norm" : "delta_p";
@@ -298,7 +414,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
                                  6, 0, 7),
             "p_proton_rec", "delta_p", "sector_proton");
 
-    std::vector<double> momentum_bins = {0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25}; // new bins
+    std::vector<double> momentum_bins = {0.4, 0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25}; // new bins
     const size_t num_bins = momentum_bins.size() - 1;
 
     std::vector<TGraphErrors*> sector_graphs(6, nullptr);
@@ -312,7 +428,7 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
         TCanvas* c = new TCanvas(Form("sector_canvas_%d", sector),
                                  Form("%s slices in Sector %d", dp_Or_dpp.c_str(), sector),
                                  1200, 800);
-        c->Divide(5, 5);
+        c->Divide(3,3);
 
         hist3D->GetZaxis()->SetRange(sector, sector);
 
@@ -385,6 +501,52 @@ void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& out
     summaryCanvas->SaveAs((output_folder + thetaBin + "_theta_mean_" + dp_Or_dpp + "_vs_momentum_bin_by_sector.pdf").c_str());
 
     std::cout << "Saved summary plot with black markers and red y=0 line.\n";
+}
+
+void plot_theta_slices_2D(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+    auto rdf_theta = rdf.Filter("detector == \"FD\" && Theta_rec >= 28 && Theta_rec < 30");
+
+    std::vector<std::pair<double, double>> p_bins = {
+        {0.4, 0.5},
+        {0.5, 0.6}  // Change to {0.6, 0.7} if needed
+    };
+
+    for (const auto& [p_min, p_max] : p_bins) {
+        std::string label = Form("p%.2f_%.2f", p_min, p_max);
+        auto rdf_p = rdf_theta.Filter(Form("p_proton_rec >= %.3f && p_proton_rec <= %.3f", p_min, p_max));
+
+        auto h_dp_vs_p = rdf_p.Histo2D(
+            {"h_dp_vs_p", Form("delta_p vs p_rec [Theta 28–30, %s];p_rec (GeV/c);delta_p (GeV/c)", label.c_str()),
+             100, 0, 2.5, 100, -0.1, 0.1},
+            "p_proton_rec", "delta_p");
+
+        auto h_theta_vs_p = rdf_p.Histo2D(
+            {"h_theta_vs_p", Form("Theta_rec vs p_rec [Theta 28–30, %s];p_rec (GeV/c);Theta_rec (deg)", label.c_str()),
+             100, 0, 2.5, 100, 0, 60},
+            "p_proton_rec", "Theta_rec");
+
+        auto h_theta_vs_dpnorm = rdf_p.Histo2D(
+            {"h_theta_vs_dpnorm", Form("Theta_rec vs delta_p/p [Theta 28–30, %s];delta_p/p;Theta_rec (deg)", label.c_str()),
+             100, -0.2, 0.1, 100, 0, 60},
+            "dp_norm", "Theta_rec");
+
+        TCanvas* c1 = new TCanvas(Form("canvas_dp_vs_p_%s", label.c_str()), "delta_p vs p", 800, 600);
+        h_dp_vs_p->Draw("COLZ");
+        c1->SaveAs((output_folder + "delta_p_vs_p_" + label + ".pdf").c_str());
+        delete c1;
+
+        TCanvas* c2 = new TCanvas(Form("canvas_theta_vs_p_%s", label.c_str()), "Theta vs p", 800, 600);
+        h_theta_vs_p->Draw("COLZ");
+        c2->SaveAs((output_folder + "theta_vs_p_" + label + ".pdf").c_str());
+        delete c2;
+
+        TCanvas* c3 = new TCanvas(Form("canvas_theta_vs_dpnorm_%s", label.c_str()), "Theta vs delta_p/p", 800, 600);
+        h_theta_vs_dpnorm->Draw("COLZ");
+        c3->SaveAs((output_folder + "theta_vs_dpnorm_" + label + ".pdf").c_str());
+        delete c3;
+    }
+
+    std::cout << "Saved 2D plots for Theta_rec ∈ [28, 30) and selected p_rec bins.\n";
 }
 
 
