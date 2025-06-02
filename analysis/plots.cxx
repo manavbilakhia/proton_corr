@@ -276,12 +276,11 @@ void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std
 
     // Define theta bin edges
     std::vector<std::pair<double, double>> theta_bins = {
-       {0,25} ,{25,35}, {28,35}
-    //{0, 26.5} , {26.5, 29}, {26.5, 31}, {26.5, 33}, {26.5, 35}
+    {0, 27}, {27,180}, {27,29}, {27,31}, {27,33}
 };
 
     // Momentum bin edges
-    std::vector<double> momentum_bins = {0.4, 0.43, 0.45, 0.47,0.5,
+    std::vector<double> momentum_bins = {0.4, 0.43, 0.45, 0.47, 0.5,
                                          0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25};
     const size_t num_bins = momentum_bins.size() - 1;
 
@@ -329,7 +328,7 @@ void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std
                 TH1* hist1D = hist3D->Project3D("y");
 
                 hist1D->SetName(Form("%s_%s_sector%d_bin%zu", theta_label.c_str(), dp_Or_dpp.c_str(), sector, bin_idx + 1));
-                hist1D->SetTitle(Form("Theta [%.0f,%.0f] Sector %d: %.2f–%.2f GeV;%s (GeV/c);Counts",
+                hist1D->SetTitle(Form("Theta [%.0f,%.0f] Sector %d: %.2f - %.2f GeV;%s (GeV/c);Counts",
                                       theta_min, theta_max, sector, p_low, p_high, dp_Or_dpp.c_str()));
 
                 c->cd(bin_idx + 1);
@@ -516,17 +515,17 @@ void plot_theta_slices_2D(ROOT::RDF::RNode rdf, const std::string& output_folder
         auto rdf_p = rdf_theta.Filter(Form("p_proton_rec >= %.3f && p_proton_rec <= %.3f", p_min, p_max));
 
         auto h_dp_vs_p = rdf_p.Histo2D(
-            {"h_dp_vs_p", Form("delta_p vs p_rec [Theta 28–30, %s];p_rec (GeV/c);delta_p (GeV/c)", label.c_str()),
+            {"h_dp_vs_p", Form("delta_p vs p_rec [Theta 28 - 30, %s];p_rec (GeV/c);delta_p (GeV/c)", label.c_str()),
              100, 0, 2.5, 100, -0.1, 0.1},
             "p_proton_rec", "delta_p");
 
         auto h_theta_vs_p = rdf_p.Histo2D(
-            {"h_theta_vs_p", Form("Theta_rec vs p_rec [Theta 28–30, %s];p_rec (GeV/c);Theta_rec (deg)", label.c_str()),
+            {"h_theta_vs_p", Form("Theta_rec vs p_rec [Theta 28 - 30, %s];p_rec (GeV/c);Theta_rec (deg)", label.c_str()),
              100, 0, 2.5, 100, 0, 60},
             "p_proton_rec", "Theta_rec");
 
         auto h_theta_vs_dpnorm = rdf_p.Histo2D(
-            {"h_theta_vs_dpnorm", Form("Theta_rec vs delta_p/p [Theta 28–30, %s];delta_p/p;Theta_rec (deg)", label.c_str()),
+            {"h_theta_vs_dpnorm", Form("Theta_rec vs delta_p/p [Theta 28 - 30, %s];delta_p/p;Theta_rec (deg)", label.c_str()),
              100, -0.2, 0.1, 100, 0, 60},
             "dp_norm", "Theta_rec");
 
@@ -546,7 +545,7 @@ void plot_theta_slices_2D(ROOT::RDF::RNode rdf, const std::string& output_folder
         delete c3;
     }
 
-    std::cout << "Saved 2D plots for Theta_rec ∈ [28, 30) and selected p_rec bins.\n";
+    std::cout << "Saved 2D plots for Theta_rec  and selected p_rec bins.\n";
 }
 
 
