@@ -131,8 +131,10 @@ int main() {
     //Theta_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
     //Phi_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
     //Phi_VS_Theta_FD_CD(init_rdf,OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, true);
+    //delta_P_VS_P_rec_FD_sectors_2D_theta_sliced(init_rdf, OUTPUT_FOLDER, true);
+    //delta_P_VS_P_rec_FD_sectors_2D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
     delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
+    //delta_P_VS_P_rec_with_cut(init_rdf, OUTPUT_FOLDER);
     //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", true);
     //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", false);
     //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", true);

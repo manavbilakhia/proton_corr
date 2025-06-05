@@ -276,12 +276,11 @@ void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std
 
     // Define theta bin edges
     std::vector<std::pair<double, double>> theta_bins = {
-    {0, 27}, {27,180}, {27,29}, {27,31}, {27,33}
+    {0,27}, {27,33}, {33,180}
 };
 
     // Momentum bin edges
-    std::vector<double> momentum_bins = {0.4, 0.43, 0.45, 0.47, 0.5,
-                                         0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25};
+    std::vector<double> momentum_bins = {0.4, 0.5, 0.6, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25};
     const size_t num_bins = momentum_bins.size() - 1;
 
     for (size_t theta_idx = 0; theta_idx < theta_bins.size(); ++theta_idx) {
@@ -385,6 +384,95 @@ void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std
         std::cout << "Saved summary plot for theta bin [" << theta_min << ", " << theta_max << ")\n";
     }
 }
+
+void delta_P_VS_P_rec_FD_sectors_2D_theta_sliced(ROOT::RDF::RNode rdf, const std::string& output_folder, const bool normalized) {
+    std::string dp_Or_dpp = normalized ? "delta_p_norm" : "delta_p";
+
+    // Define theta bin edges
+    std::vector<std::pair<double, double>> theta_bins = {
+       {0,27}, {27,33}, {33,180}
+    };
+    for (const auto& [theta_min, theta_max] : theta_bins) {
+        std::string theta_label = Form("theta_%.0f_%.0f", theta_min, theta_max);
+
+        // Filter by theta and detector
+        ROOT::RDF::RNode rdf_filtered = rdf.Filter(Form("detector == \"FD\" && Theta_rec >= %.2f && Theta_rec < %.2f", theta_min, theta_max));
+
+        auto hist3D = normalized
+            ? rdf_filtered.Histo3D(
+                  ROOT::RDF::TH3DModel("delta_p/p_VS_P_rec_FD_3D",
+                                       "delta_p/p vs P_rec vs Sector;P_rec (GeV);delta_p/p;Sector",
+                                       100, 0, 2.5, 100, -0.2, 0.1, 6, 0, 7),
+                  "p_proton_rec", "dp_norm", "sector_proton")
+            : rdf_filtered.Histo3D(
+                  ROOT::RDF::TH3DModel("delta_P_VS_P_rec_FD_3D",
+                                       "delta P vs P_rec vs Sector;P_rec (GeV/c);delta P (GeV/c);Sector",
+                                       100, 0, 2.5, 100, -0.1, 0.1, 6, 0, 7),
+                  "p_proton_rec", "delta_p", "sector_proton");
+
+        TCanvas* c_all_sectors = new TCanvas(Form("c2D_allSectors_%s", theta_label.c_str()),
+                                             Form("Δp vs P_rec for all sectors (Theta %.0f–%.0f)", theta_min, theta_max),
+                                             1800, 1200);
+        c_all_sectors->Divide(3, 2);
+
+        for (int sector = 1; sector <= 6; ++sector) {
+            hist3D->GetZaxis()->SetRange(sector, sector);
+
+            // Clone the projection so each sector gets its own copy
+            TH2D* hist2D = (TH2D*)hist3D->Project3D("yx")->Clone(Form("h2D_sector%d_%s", sector, theta_label.c_str()));
+            hist2D->SetTitle(Form("Sector %d;P_rec (GeV/c);%s", sector, dp_Or_dpp.c_str()));
+
+            c_all_sectors->cd(sector);
+            hist2D->Draw("COLZ");
+            gPad->SetRightMargin(0.15);
+        }
+
+        c_all_sectors->SaveAs((output_folder + theta_label + "_2D_all_sectors_" + dp_Or_dpp + ".pdf").c_str());
+        delete c_all_sectors;
+
+        std::cout << "Saved combined 2D canvas for theta bin [" << theta_min << ", " << theta_max << ")\n";
+    }
+}
+
+//----------------------------------------------CUT FUNCTION-----------------------------------------------------------------//
+
+void delta_P_VS_P_rec_with_cut(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+    auto hist2D = rdf.Filter("detector == \"FD\"")
+        .Histo2D(
+            ROOT::RDF::TH2DModel("delta_P_vs_P_rec_cut",
+                                 "Delta P vs P_{rec} in FD;P_{rec} (GeV/c);#Delta P (GeV/c)",
+                                 250, 0, 2.5, 250, -0.1, 0.1),
+            "p_proton_rec", "delta_p"
+        );
+
+    TCanvas* c = new TCanvas("c_deltaP_vs_P_with_cut", "Delta P vs P_rec with cut lines", 1000, 800);
+    hist2D->Draw("COLZ");
+
+    // Parabolic cut (concave down)
+    TF1* parabola_cut = new TF1("parabola_cut", "-0.05 * pow(x - 0.55, 2) - 0.02", 0.3, 2.0);
+    parabola_cut->SetLineColor(kMagenta + 2);
+    parabola_cut->SetLineStyle(2);
+    parabola_cut->SetLineWidth(3);
+    parabola_cut->Draw("SAME");
+
+    // Sharper, more realistic log cut
+    TF1* log_cut = new TF1("log_cut", "0.021 * log(10 * x) - 0.063", 0.3,1);
+    log_cut->SetLineColor(kPink + 1);
+    log_cut->SetLineStyle(7);
+    log_cut->SetLineWidth(3);
+    log_cut->Draw("SAME");
+
+    
+
+    std::string output_path = output_folder + "/delta_P_vs_P_rec_with_log_and_parabola_cuts.pdf";
+    c->SaveAs(output_path.c_str());
+    delete c;
+}
+
+
+//--------------------------------------------------------------------------------------------------------------//
+
+
 
 
 void delta_P_VS_P_rec_FD_sectors_1D(ROOT::RDF::RNode rdf, const std::string& output_folder, const std::string& thetaBin, const bool normalized) {
