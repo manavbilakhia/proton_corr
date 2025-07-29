@@ -19,6 +19,7 @@
 #include <TMath.h>
 #include <cmath>
 #include <chrono>
+#include <TPaveStats.h>
 
 
 int isData = 1;  // 1 for real data, 0 for MC
@@ -30,11 +31,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
 
-std::string root_file_path = "../data_test/DVPi0PRuns.dat.root";
+std::string root_file_path = "../data/Fall2018OutDVPi0PRuns_pass2.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_DVPi0P" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_Fall2018OutDVPi0P_pass2" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -73,7 +74,7 @@ ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path)
 
 
 void plot_momenta_components_proton(ROOT::RDF::RNode rdf) { // do not use loops, the graphs are too different for slicing and loopiong will lead to lazy eval
-    TCanvas canvas("c2", "momenta_components", 800, 600);
+    TCanvas canvas("c2", "momenta_components", 1200, 800);
     canvas.Divide(3,1);
     canvas.cd(1);
     auto hist4 = rdf.Histo1D(ROOT::RDF::TH1DModel("px_proton_rec", "px_proton_rec; px_proton_rec (GeV); Events", 100, -2, 2), "px_prot_rec");
@@ -93,7 +94,7 @@ void plot_momenta_components_proton(ROOT::RDF::RNode rdf) { // do not use loops,
 
 
 void plot_P_rec_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c6", "P_rec", 800, 600);
+    TCanvas canvas("c6", "P_rec", 1200, 800);
     auto hist2 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_rec", "p_proton_rec; p_proton_rec (GeV); Events", 100, 0, 8), "p_proton_rec");
     hist2->Draw();
 
@@ -103,16 +104,16 @@ void plot_P_rec_proton(ROOT::RDF::RNode rdf) {
 
 
 void Theta_VS_momentum_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c7", "Theta VS momentum", 800, 600);
+    TCanvas canvas("c7", "Theta VS momentum", 1200, 800);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 180), "p_proton_rec", "Theta_rec");
     hist2->Draw("COLZ");
 
-    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum.pdf").c_str());
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_proton.pdf").c_str());
     std::cout << "Saved 2D histogram as Theta_VS_momentum.pdf" << std::endl;
 }
 
 void Theta_VS_momentum_electron(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c7", "Theta VS momentum", 800, 600);
+    TCanvas canvas("c7", "Theta VS momentum", 1200, 800);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 50), "p_electron_rec", "Theta_electron_rec");
     hist2->Draw("COLZ");
 
@@ -121,29 +122,42 @@ void Theta_VS_momentum_electron(ROOT::RDF::RNode rdf) {
 }
 
 void Theta_VS_momentum_FD_CD_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c8", "Theta VS momentum FD CD", 800, 600);
+    TCanvas canvas("c8", "Theta VS momentum FD CD", 1200, 800);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist2 = rdf.Filter("detector == \"FD\"").Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_FD", "Theta_rec VS P_rec in FD;  P_rec (GeV); Theta_rec (deg);", 100, 0, 10, 100, 0, 180), "p_proton_rec", "Theta_rec"  );
+    auto hist2 = rdf.Filter("detector == \"FD\"").Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_FD", "Theta_rec VS P_rec in FD;  P_rec (GeV); Theta_rec (deg);", 100, 0, 10, 100, 0, 90), "p_proton_rec", "Theta_rec"  );
     hist2->Draw("COLZ");
     canvas.cd(2);
     auto hist4 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_CD", "Theta_rec VS P_rec in CD;  P_rec (GeV); Theta_rec (deg);",  100, 0, 10, 100, 0, 180), "p_proton_rec", "Theta_rec");
     hist4->Draw("COLZ");
 
-    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_FD_CD.pdf").c_str());
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_FD_CD_proton.pdf").c_str());
     std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_CD.pdf" << std::endl;
 }
 
+void Theta_VS_momentum_FD_proton_theta_gt_40(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c_fd_theta_gt_40", "Theta vs P (FD, Theta > 40)", 1200, 800);
+    auto hist = rdf.Filter("detector == \"FD\" && Theta_rec > 40")
+                  .Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_FD_theta_gt_40",
+                                                "Theta_rec vs P_rec in FD (Theta > 40 deg); P_rec (GeV); Theta_rec (deg)",
+                                                100, 0, 10, 100, 30, 90),
+                           "p_proton_rec", "Theta_rec");
+    hist->Draw("COLZ");
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_FD_theta_gt_40.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_theta_gt_40.pdf" << std::endl;
+}
+
 void Phi_VS_momentum_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c8", "Phi VS momentum", 800, 600);
+    TCanvas canvas("c8", "Phi VS momentum", 1200, 800);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec", "Phi_rec VS P_rec; Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 10), "Phi_rec",  "p_proton_rec");
     hist2->Draw("COLZ");
-    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_momentum.pdf").c_str());
+    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_momentum_proton.pdf").c_str());
     std::cout << "Saved 2D histogram as Phi_VS_momentum.pdf" << std::endl;
 }
 
 void Phi_VS_momentum_FD_CD_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c8", "Phi VS momentum FD CD", 800, 600);
+    TCanvas canvas("c8", "Phi VS momentum FD CD", 1200, 800);
     canvas.Divide(1,2);
 
     canvas.cd(1);
@@ -153,21 +167,21 @@ void Phi_VS_momentum_FD_CD_proton(ROOT::RDF::RNode rdf) {
     auto hist4 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec_CD", "Phi_rec VS P_rec in CD; Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 10), "Phi_rec", "p_proton_rec");
     hist4->Draw("COLZ");
 
-    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_momentum_FD_CD.pdf").c_str());
+    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_momentum_FD_CD_proton.pdf").c_str());
     std::cout << "Saved 2D histogram as Phi_VS_momentum_FD_CD.pdf" << std::endl;
 }
 
 void Phi_VS_Theta_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c9", "Phi VS Theta", 800, 600);
+    TCanvas canvas("c9", "Phi VS Theta", 1200, 800);
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec", "Phi_rec VS Theta_rec; Phi_rec (deg) ;Theta_rec (deg)",  100, -200, 200, 100, 0, 180), "Phi_rec", "Theta_rec");
     hist2->Draw("COLZ");
 
-    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_Theta.pdf").c_str());
+    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_Theta_proton.pdf").c_str());
     std::cout << "Saved 2D histogram as Phi_VS_Theta.pdf" << std::endl;
 }
 
 void Phi_VS_Theta_FD_CD_proton(ROOT::RDF::RNode rdf) {
-    TCanvas canvas("c10", "Phi VS Theta FD CD", 800, 600);
+    TCanvas canvas("c10", "Phi VS Theta FD CD", 1200, 800);
     canvas.Divide(1,2);
     canvas.cd(1);
     auto hist2 = rdf.Filter("detector == \"FD\"").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec_FD", "Phi_rec VS Theta_rec in FD;  Phi_rec (deg); Theta_rec (deg)", 100, -200, 200, 100, 0, 180), "Phi_rec", "Theta_rec" );
@@ -176,17 +190,81 @@ void Phi_VS_Theta_FD_CD_proton(ROOT::RDF::RNode rdf) {
     auto hist4 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec_CD", "Phi_rec VS Theta_rec in CD; Phi_rec (deg); Theta_rec (deg)", 100, -200, 200, 100, 0, 180), "Phi_rec", "Theta_rec");
     hist4->Draw("COLZ");
 
-    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_Theta_FD_CD.pdf").c_str());
+    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_Theta_FD_CD_proton.pdf").c_str());
     std::cout << "Saved 2D histogram as Phi_VS_Theta_FD_CD.pdf" << std::endl;
 }
 
+//-----------------------------------------------------------------DC fiducial cut functions --------------------------------------------------------------------------------------------------------------//
+
+void Theta_VS_momentum_FD_proton_fiducial_cut(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c8", "Theta VS momentum FD with Fiducial cut", 1200, 800);
+
+    auto hist2 = rdf.Filter("detector == \"FD\" && DC_fiducial_cut_proton == true").Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_FD", "Theta_rec VS P_rec in FD Fiducial cuts ON;  P_rec (GeV); Theta_rec (deg);", 100, 0, 10, 100, 0, 90), "p_proton_rec", "Theta_rec"  );
+    hist2->Draw("COLZ");
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_FD_proton_fiducial_cut.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_proton_fiducial_cut.pdf" << std::endl;
+}
+
+void Theta_VS_momentum_FD_proton_theta_gt_40_fiducial_cut(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c_fd_theta_gt_40", "Theta vs P (FD, Theta > 40, Fid cuts on)", 1200, 800);
+    auto hist = rdf.Filter("detector == \"FD\" && Theta_rec > 40 && DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true")
+                  .Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_FD_theta_gt_40",
+                                                "Theta_rec vs P_rec in FD (Theta > 40 deg, Fiducial cuts ON); P_rec (GeV); Theta_rec (deg)",
+                                                100, 0, 10, 100, 30, 90),
+                           "p_proton_rec", "Theta_rec");
+    hist->Draw("COLZ");
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_FD_theta_gt_40_fiducial_cut.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_theta_gt_40_fiducial_cut.pdf" << std::endl;
+}
+
+void Theta_VS_momentum_electron_fiducial_cut(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c7", "Theta VS momentum", 1200, 800);
+    auto hist2 = rdf.Filter("DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true").Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec Fiducial cuts ON; P_rec (GeV); Theta_rec (deg)", 100, 0, 10, 100, 0, 50), "p_electron_rec", "Theta_electron_rec");
+    hist2->Draw("COLZ");
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Theta_VS_momentum_electron_fiducial_cuts.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum_electron.pdf" << std::endl;
+
+}
+
+void Phi_VS_momentum_FD_CD_proton_fiducial_cut(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c8", "Phi VS momentum FD CD", 1200, 800);
+    canvas.Divide(1,2);
+
+    canvas.cd(1);
+    auto hist2 = rdf.Filter("detector == \"FD\" && DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec_FD", "Phi_rec VS P_rec in FD Fiducial cuts ON;  Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 10), "Phi_rec", "p_proton_rec" );
+    hist2->Draw("COLZ");
+    canvas.cd(2);
+    auto hist4 = rdf.Filter("detector == \"CD\" && DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec_CD", "Phi_rec VS P_rec in CD Fiducial cuts ON; Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 10), "Phi_rec", "p_proton_rec");
+    hist4->Draw("COLZ");
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_momentum_FD_CD_proton_fiducial_cut.pdf").c_str());
+    std::cout << "Saved 2D histogram as Phi_VS_momentum_FD_CD.pdf" << std::endl;
+}
+
+void Phi_VS_Theta_FD_CD_proton_fiducial_cut(ROOT::RDF::RNode rdf) {
+    TCanvas canvas("c10", "Phi VS Theta FD CD", 1200, 800);
+    canvas.Divide(1,2);
+    canvas.cd(1);
+    auto hist2 = rdf.Filter("detector == \"FD\" && DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true ").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec_FD", "Phi_rec VS Theta_rec in FD Fiducial cuts ON;  Phi_rec (deg); Theta_rec (deg)", 100, -200, 200, 100, 0, 180), "Phi_rec", "Theta_rec" );
+    hist2->Draw("COLZ");
+    canvas.cd(2);
+    auto hist4 = rdf.Filter("detector == \"CD\" && DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec_CD", "Phi_rec VS Theta_rec in CD Fiducial cuts ON; Phi_rec (deg); Theta_rec (deg)", 100, -200, 200, 100, 0, 180), "Phi_rec", "Theta_rec");
+    hist4->Draw("COLZ");
+
+
+    canvas.SaveAs((OUTPUT_FOLDER + "Phi_VS_Theta_FD_CD_proton_fiducial_cut.pdf").c_str());
+    std::cout << "Saved 2D histogram as Phi_VS_Theta_FD_CD.pdf" << std::endl;
+}
 
 
 int main() {
     auto start = std::chrono::high_resolution_clock::now(); // STRAT
 
     // Load ROOT file and convert TTrees to RDataFrame
-    //ROOT::EnableImplicitMT(); // Enable multi-threading
+    ROOT::EnableImplicitMT(); // Enable multi-threading
     auto rdf = convert_ttrees_to_rdataframe(root_file_path);
     if (rdf.GetColumnNames().empty()) {
         std::cerr << "Error: Could not create RDataFrame." << std::endl;
@@ -205,14 +283,15 @@ int main() {
                         }, {"status_proton"})
                         .Define("electron_rec_4_momentum", "TLorentzVector(px_electron_rec, py_electron_rec, pz_electron_rec, 0.000511)")
                         .Define("Phi_electron_rec", "electron_rec_4_momentum.Phi()*TMath::RadToDeg()")
-                        .Define("Theta_electron_rec", "electron_rec_4_momentum.Theta()*TMath::RadToDeg()");
-                        
+                        .Define("Theta_electron_rec", "electron_rec_4_momentum.Theta()*TMath::RadToDeg()")
+                        .Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 10.0 && edge2_proton > 10.0 && edge3_proton > 20.0")
+                        .Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 5.0 && edge2_electron > 5.0 && edge3_electron > 10.0");
 
     // Print column names
-    std::cout << "Columns in RDataFrame:" << std::endl;
-    for (const auto &col : init_rdf.GetColumnNames()) {
-        std::cout << col << std::endl;
-    }
+    //std::cout << "Columns in RDataFrame:" << std::endl;
+    //for (const auto &col : init_rdf.GetColumnNames()) {
+    //    std::cout << col << std::endl;
+    //}
      
     //init_rdf.Filter("delta_p == 0").Display()->Print();
     //init_rdf.Display({"detector", "status_proton", "sector_proton"}, 200)->Print();
@@ -221,6 +300,18 @@ int main() {
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
     Theta_VS_momentum_electron(init_rdf);
+    Theta_VS_momentum_electron_fiducial_cut(init_rdf);
+    Phi_VS_Theta_FD_CD_proton(init_rdf);
+    Phi_VS_Theta_FD_CD_proton_fiducial_cut(init_rdf);
+    Phi_VS_momentum_FD_CD_proton(init_rdf);
+    Phi_VS_momentum_FD_CD_proton_fiducial_cut(init_rdf);
+    Theta_VS_momentum_FD_proton_fiducial_cut(init_rdf);
+    Theta_VS_momentum_FD_CD_proton(init_rdf);
+    Theta_VS_momentum_FD_proton_theta_gt_40_fiducial_cut(init_rdf);
+    Theta_VS_momentum_FD_proton_theta_gt_40(init_rdf);
+    
+
+
     auto end = std::chrono::high_resolution_clock::now(); // END
 
     std::chrono::duration<double> elapsed = end - start;

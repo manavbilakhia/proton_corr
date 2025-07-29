@@ -17,8 +17,8 @@ void plot_delta_P(ROOT::RDF::RNode rdf,const std::string& output_folder) {
     TCanvas canvas("c1", "delta_P", 800, 600);
     auto hist = rdf.Histo1D(ROOT::RDF::TH1DModel("delta_P", "delta_P (rec - gen); delta P (GeV); Events", 100, -0.5, 0.5), "delta_p");
     hist->Draw();
-    canvas.SaveAs((output_folder + "delta_P.png").c_str());
-    std::cout << "Saved 1D histogram as delta_P.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P.pdf").c_str());
+    std::cout << "Saved 1D histogram as delta_P.pdf" << std::endl;
 }
 
 void plot_delta_P_above_below_1GeV(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -32,8 +32,8 @@ void plot_delta_P_above_below_1GeV(ROOT::RDF::RNode rdf, const std::string& outp
     canvas.cd(2);   
     auto hist_below = rdf_below.Histo1D(ROOT::RDF::TH1DModel("delta_P_below_1GeV", "delta_P (rec - gen) for protons < 1 GeV; delta P (GeV); Events", 200, -0.5, 0.5), "delta_p");
     hist_below->Draw();
-    canvas.SaveAs((output_folder + "delta_P_above_below_1GeV.png").c_str());
-    std::cout << "Saved 1D histogram as delta_P.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P_above_below_1GeV.pdf").c_str());
+    std::cout << "Saved 1D histogram as delta_P.pdf" << std::endl;
 }
 
 void plot_momenta_components(ROOT::RDF::RNode rdf, const std::string& output_folder) { // do not use loops, the graphs are too different for slicing and loopiong will lead to lazy eval
@@ -58,8 +58,8 @@ void plot_momenta_components(ROOT::RDF::RNode rdf, const std::string& output_fol
     auto hist6 = rdf.Histo1D(ROOT::RDF::TH1DModel("pz_proton_rec", "pz_proton_rec; pz_proton_rec (GeV); Events", 100, 0, 3), "pz_prot_rec");
     hist6->Draw();
 
-    canvas.SaveAs((output_folder + "momenta_components.png").c_str());
-    std::cout << "Saved 1D histogram as momenta_components.png" << std::endl;
+    canvas.SaveAs((output_folder + "momenta_components.pdf").c_str());
+    std::cout << "Saved 1D histogram as momenta_components.pdf" << std::endl;
 }
 
 
@@ -67,8 +67,8 @@ void plot_delta_P_VS_P_rec(ROOT::RDF::RNode rdf, const std::string& output_folde
     TCanvas canvas("c5", "delta P VS P_rec", 800, 600);
     auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 200, 0, 5, 200, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D->Draw("COLZ");
-    canvas.SaveAs((output_folder + "delta_P_VS_P_rec.png").c_str());
-    std::cout << "Saved 2D histogram as delta_P_VS_P_rec.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P_VS_P_rec.pdf").c_str());
+    std::cout << "Saved 2D histogram as delta_P_VS_P_rec.pdf" << std::endl;
 }
 
 void plot_delta_P_VS_P_rec_above_below_1GeV(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -82,8 +82,8 @@ void plot_delta_P_VS_P_rec_above_below_1GeV(ROOT::RDF::RNode rdf, const std::str
     canvas.cd(2);   
     auto hist2D_below = rdf_below.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec for protons < 1 GeV;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -1, 1), "p_proton_rec", "delta_p");
     hist2D_below->Draw("COLZ");
-    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_above_below_1GeV.png").c_str());
-    std::cout << "Saved 1D histogram as delta_P_VS_P_rec_above_below_1GeV.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_above_below_1GeV.pdf").c_str());
+    std::cout << "Saved 1D histogram as delta_P_VS_P_rec_above_below_1GeV.pdf" << std::endl;
 }
 
 void plot_delta_P_VS_P_rec_FD_Theta_below_above(ROOT::RDF::RNode rdf, const std::string& output_folder){
@@ -97,8 +97,8 @@ void plot_delta_P_VS_P_rec_FD_Theta_below_above(ROOT::RDF::RNode rdf, const std:
     canvas.cd(2);
     auto hist2D_below = rdf_below.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_below_Theta", "delta P vs P_rec for theta < 28 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D_below->Draw("COLZ");
-    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_Theta_below_above_28deg.png").c_str());
-    std::cout << "Saved 1D histogram as delta_P_VS_P_rec_FD_Theta_below_above_28deg.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_Theta_below_above_28deg.pdf").c_str());
+    std::cout << "Saved 1D histogram as delta_P_VS_P_rec_FD_Theta_below_above_28deg.pdf" << std::endl;
 }
 
 void plot_P_rec_P_gen(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -111,8 +111,8 @@ void plot_P_rec_P_gen(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     auto hist2 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_rec", "p_proton_rec; p_proton_rec (GeV); Events", 100, 0, 2.5), "p_proton_rec");
     hist2->Draw();
 
-    canvas.SaveAs((output_folder + "P_rec_P_gen.png").c_str());
-    std::cout << "Saved 1D histogram as P_rec_P_gen.png" << std::endl;
+    canvas.SaveAs((output_folder + "P_rec_P_gen.pdf").c_str());
+    std::cout << "Saved 1D histogram as P_rec_P_gen.pdf" << std::endl;
 }
 
 
@@ -126,8 +126,8 @@ void Theta_VS_momentum(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec", "Theta_rec VS P_rec; P_rec (GeV); Theta_rec (deg)", 100, 0, 7, 100, 0, 100), "p_proton_rec", "Theta_rec");
     hist2->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "Theta_VS_momentum.png").c_str());
-    std::cout << "Saved 2D histogram as Theta_VS_momentum.png" << std::endl;
+    canvas.SaveAs((output_folder + "Theta_VS_momentum.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum.pdf" << std::endl;
 }
 
 void Theta_VS_momentum_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -146,8 +146,8 @@ void Theta_VS_momentum_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_fol
     auto hist4 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("Theta_rec_VS_P_rec_CD", "Theta_rec VS P_rec in CD;  P_rec (GeV); Theta_rec (deg);",  100, 0, 5, 100, 0, 100), "p_proton_rec", "Theta_rec");
     hist4->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "Theta_VS_momentum_FD_CD.png").c_str());
-    std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_CD.png" << std::endl;
+    canvas.SaveAs((output_folder + "Theta_VS_momentum_FD_CD.pdf").c_str());
+    std::cout << "Saved 2D histogram as Theta_VS_momentum_FD_CD.pdf" << std::endl;
 }
 
 void Phi_VS_momentum(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -160,8 +160,8 @@ void Phi_VS_momentum(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec", "Phi_rec VS P_rec; Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 5), "Phi_rec",  "p_proton_rec");
     hist2->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "Phi_VS_momentum.png").c_str());
-    std::cout << "Saved 2D histogram as Phi_VS_momentum.png" << std::endl;
+    canvas.SaveAs((output_folder + "Phi_VS_momentum.pdf").c_str());
+    std::cout << "Saved 2D histogram as Phi_VS_momentum.pdf" << std::endl;
 }
 
 void Phi_VS_momentum_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -180,8 +180,8 @@ void Phi_VS_momentum_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_folde
     auto hist4 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_P_rec_CD", "Phi_rec VS P_rec in CD; Phi_rec (deg); P_rec (GeV)", 100, -200, 200, 100, 0, 5), "Phi_rec", "p_proton_rec");
     hist4->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "Phi_VS_momentum_FD_CD.png").c_str());
-    std::cout << "Saved 2D histogram as Phi_VS_momentum_FD_CD.png" << std::endl;
+    canvas.SaveAs((output_folder + "Phi_VS_momentum_FD_CD.pdf").c_str());
+    std::cout << "Saved 2D histogram as Phi_VS_momentum_FD_CD.pdf" << std::endl;
 }
 
 void Phi_VS_Theta(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -194,8 +194,8 @@ void Phi_VS_Theta(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     auto hist2 = rdf.Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec", "Phi_rec VS Theta_rec; Phi_rec (deg) ;Theta_rec (deg)",  100, -200, 200, 100, 0, 100), "Phi_rec", "Theta_rec");
     hist2->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "Phi_VS_Theta.png").c_str());
-    std::cout << "Saved 2D histogram as Phi_VS_Theta.png" << std::endl;
+    canvas.SaveAs((output_folder + "Phi_VS_Theta.pdf").c_str());
+    std::cout << "Saved 2D histogram as Phi_VS_Theta.pdf" << std::endl;
 }
 
 void Phi_VS_Theta_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -214,8 +214,8 @@ void Phi_VS_Theta_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_folder) 
     auto hist4 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("Phi_rec_VS_Theta_rec_CD", "Phi_rec VS Theta_rec in CD; Phi_rec (deg); Theta_rec (deg)", 100, -200, 200, 100, 0, 100), "Phi_rec", "Theta_rec");
     hist4->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "Phi_VS_Theta_FD_CD.png").c_str());
-    std::cout << "Saved 2D histogram as Phi_VS_Theta_FD_CD.png" << std::endl;
+    canvas.SaveAs((output_folder + "Phi_VS_Theta_FD_CD.pdf").c_str());
+    std::cout << "Saved 2D histogram as Phi_VS_Theta_FD_CD.pdf" << std::endl;
 }
 
 void delta_P_VS_P_rec_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -228,8 +228,8 @@ void delta_P_VS_P_rec_FD_CD(ROOT::RDF::RNode rdf, const std::string& output_fold
     auto hist2D_2 = rdf.Filter("detector == \"CD\"").Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_CD", "delta P vs P_rec in CD;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D_2->Draw("COLZ");
 
-    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_CD.png").c_str());
-    std::cout << "Saved 2D histogram as delta_P_VS_P_rec_FD_CD.png" << std::endl;
+    canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_CD.pdf").c_str());
+    std::cout << "Saved 2D histogram as delta_P_VS_P_rec_FD_CD.pdf" << std::endl;
 }
 
 
@@ -241,7 +241,7 @@ void delta_P_VS_P_rec_FD_sectors_2D(ROOT::RDF::RNode rdf, const std::string& out
     auto hist3D = rdf_filtered.Histo3D(
         ROOT::RDF::TH3DModel("delta_P_VS_P_rec_FD_3D",
                              "delta P vs P_rec vs Sector; P_rec (GeV); delta P (GeV); Sector",
-                             100, 0, 2.5,   // X-axis: P_rec
+                             100, 0, 5.0,   // X-axis: P_rec
                              100, -0.1, 0.1, // Y-axis: delta P
                              6, 0, 7),   // Z-axis: sector (1-6)
         "p_proton_rec", "delta_p", "sector_proton"
@@ -268,7 +268,7 @@ void delta_P_VS_P_rec_FD_sectors_2D(ROOT::RDF::RNode rdf, const std::string& out
 
     // Save the final canvas
     canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_sectors.pdf").c_str());
-    std::cout << "Saved 2D histograms from 3D histogram as delta_P_VS_P_rec_FD_sectors.png" << std::endl;
+    std::cout << "Saved 2D histograms from 3D histogram as delta_P_VS_P_rec_FD_sectors.pdf" << std::endl;
 }
 
 void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std::string& output_folder, const bool normalized) {
@@ -276,7 +276,7 @@ void delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(ROOT::RDF::RNode rdf, const std
 
     // Define theta bin edges
     std::vector<std::pair<double, double>> theta_bins = {
-    {0,27}, {27,33}, {33,180}
+    {40,45}, {45,180}
 };
 
     // Momentum bin edges
@@ -390,24 +390,25 @@ void delta_P_VS_P_rec_FD_sectors_2D_theta_sliced(ROOT::RDF::RNode rdf, const std
 
     // Define theta bin edges
     std::vector<std::pair<double, double>> theta_bins = {
-       {0,27}, {27,33}, {33,180}
+       {0,180}
     };
     for (const auto& [theta_min, theta_max] : theta_bins) {
         std::string theta_label = Form("theta_%.0f_%.0f", theta_min, theta_max);
 
         // Filter by theta and detector
+        ROOT::RDF::RNode rdf_DC_cut_filtered = rdf.Filter("DC_fiducial_cut_proton == true && DC_fiducial_cut_electron == true");
         ROOT::RDF::RNode rdf_filtered = rdf.Filter(Form("detector == \"FD\" && Theta_rec >= %.2f && Theta_rec < %.2f", theta_min, theta_max));
 
         auto hist3D = normalized
             ? rdf_filtered.Histo3D(
                   ROOT::RDF::TH3DModel("delta_p/p_VS_P_rec_FD_3D",
                                        "delta_p/p vs P_rec vs Sector;P_rec (GeV);delta_p/p;Sector",
-                                       100, 0, 2.5, 100, -0.2, 0.1, 6, 0, 7),
+                                       100, 0, 5.0, 100, -0.2, 0.1, 6, 0, 7),
                   "p_proton_rec", "dp_norm", "sector_proton")
             : rdf_filtered.Histo3D(
                   ROOT::RDF::TH3DModel("delta_P_VS_P_rec_FD_3D",
                                        "delta P vs P_rec vs Sector;P_rec (GeV/c);delta P (GeV/c);Sector",
-                                       100, 0, 2.5, 100, -0.1, 0.1, 6, 0, 7),
+                                       100, 0, 5.0, 100, -0.1, 0.1, 6, 0, 7),
                   "p_proton_rec", "delta_p", "sector_proton");
 
         TCanvas* c_all_sectors = new TCanvas(Form("c2D_allSectors_%s", theta_label.c_str()),
@@ -739,8 +740,8 @@ void gen_theta_VS_rec_theta(ROOT::RDF::RNode rdf, const std::string& output_fold
     canvas.cd(2);
     auto hist2D_e = rdf.Histo2D(ROOT::RDF::TH2DModel("gen_theta_VS_rec_theta ELECTRON", "gen_theta VS rec_theta ELECTRON; rec_theta (deg); gen_theta (deg)", 100, 5, 25, 100, 5, 25), "Theta_electron_rec", "Theta_electron_gen");
     hist2D_e->Draw("COLZ");
-    canvas.SaveAs((output_folder + "gen_theta_VS_rec_theta.png").c_str());
-    std::cout << "Saved 2D histogram as gen_theta_VS_rec_theta.png" << std::endl;
+    canvas.SaveAs((output_folder + "gen_theta_VS_rec_theta.pdf").c_str());
+    std::cout << "Saved 2D histogram as gen_theta_VS_rec_theta.pdf" << std::endl;
 }
 
 void gen_phi_VS_rec_phi(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -752,8 +753,8 @@ void gen_phi_VS_rec_phi(ROOT::RDF::RNode rdf, const std::string& output_folder) 
     canvas.cd(2);
     auto hist2D_e = rdf.Histo2D(ROOT::RDF::TH2DModel("gen_phi_VS_rec_phi ELECTRON", "gen_phi VS rec_phi ELECTRON; rec_phi (deg); gen_phi (deg)", 100, -200, 200, 100, -200, 200), "Phi_electron_rec", "Phi_electron_gen");
     hist2D_e->Draw("COLZ");
-    canvas.SaveAs((output_folder + "gen_phi_VS_rec_phi.png").c_str());
-    std::cout << "Saved 2D histogram as gen_phi_VS_rec_phi.png" << std::endl;
+    canvas.SaveAs((output_folder + "gen_phi_VS_rec_phi.pdf").c_str());
+    std::cout << "Saved 2D histogram as gen_phi_VS_rec_phi.pdf" << std::endl;
 }
 
 void gen_P_VS_rec_P(ROOT::RDF::RNode rdf, const std::string& output_folder) {
@@ -765,6 +766,6 @@ void gen_P_VS_rec_P(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     canvas.cd(2);
     auto hist2D_e = rdf.Histo2D(ROOT::RDF::TH2DModel("gen_P_VS_rec_P ELECTRON", "gen_P VS rec_P ELECTRON; rec_P (GeV); gen_P (GeV)", 100, 2, 8, 100, 2, 8), "p_electron_rec", "p_electron_gen");
     hist2D_e->Draw("COLZ");
-    canvas.SaveAs((output_folder + "gen_P_VS_rec_P.png").c_str());
-    std::cout << "Saved 2D histogram as gen_P_VS_rec_P.png" << std::endl;
+    canvas.SaveAs((output_folder + "gen_P_VS_rec_P.pdf").c_str());
+    std::cout << "Saved 2D histogram as gen_P_VS_rec_P.pdf" << std::endl;
 }

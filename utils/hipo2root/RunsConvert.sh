@@ -18,4 +18,4 @@ cd /w/hallb-scshelf2102/clas12/bulgakov/projects/momcor/proton_corr/utils/hipo2r
 
 
 # Run the executable with the job array index (if needed)
-srun clas12root -q -b hipo2root.c  --in=andrey_runs_FULL.dat
+srun clas12root -q -b hipo2root.c  --in=AlexSimuNewRunsEdge.dat

@@ -61,10 +61,13 @@ void ProcessHipo(TString inputFile) {
     float px_electron_rec, py_electron_rec, pz_electron_rec, p_electron_rec;
     int pid_electron, status_electron, sector_electron;
 
+    float edge1_electron = -1, edge2_electron = -1, edge3_electron = -1;
+    float edge1_proton = -1, edge2_proton = -1, edge3_proton = -1;
+
     TFile outFile(Form("../../data/%s.root", inputFile.Data()), "recreate");
     TTree out_tree("out_tree", "out_tree");
 
-    //For proton
+    // For proton
     out_tree.Branch("px_prot_gen", &px_prot_gen);
     out_tree.Branch("py_prot_gen", &py_prot_gen);
     out_tree.Branch("pz_prot_gen", &pz_prot_gen);
@@ -91,6 +94,14 @@ void ProcessHipo(TString inputFile) {
     out_tree.Branch("p_electron_rec", &p_electron_rec);
     out_tree.Branch("pid_electron", &pid_electron);
     out_tree.Branch("status_electron", &status_electron);
+
+    // Edge branches
+    out_tree.Branch("edge1_electron", &edge1_electron);
+    out_tree.Branch("edge2_electron", &edge2_electron);
+    out_tree.Branch("edge3_electron", &edge3_electron);
+    out_tree.Branch("edge1_proton", &edge1_proton);
+    out_tree.Branch("edge2_proton", &edge2_proton);
+    out_tree.Branch("edge3_proton", &edge3_proton);
 
     // Start timing
     auto start = std::chrono::high_resolution_clock::now();
@@ -126,6 +137,7 @@ void ProcessHipo(TString inputFile) {
         hipo::bank MC_event(factory.getSchema("MC::Event"));
         hipo::bank MC_particle(factory.getSchema("MC::Particle"));
         hipo::bank REC_track(factory.getSchema("REC::Track"));
+        hipo::bank REC_traj(factory.getSchema("REC::Traj"));
 
         while (reader.next() == true) {
             counter++;
@@ -136,6 +148,7 @@ void ProcessHipo(TString inputFile) {
             event.getStructure(MC_event);
             event.getStructure(MC_particle);
             event.getStructure(REC_track);
+            event.getStructure(REC_traj);
 
             int N = REC_particle.getRows();
             int N_track = REC_track.getRows();
@@ -153,25 +166,22 @@ void ProcessHipo(TString inputFile) {
                 pid_mc[i] = MC_particle.getInt("pid", i);
             }
 
-            // Find first reconstructed proton in REC::Particle
             auto it_proton = std::find(pid.begin(), pid.end(), 2212);
-            if (it_proton == pid.end()) continue; // No proton found
+            if (it_proton == pid.end()) continue;
             int index = std::distance(pid.begin(), it_proton);
 
-            // Find first generated proton in MC::Particle
             auto it_proton_mc = std::find(pid_mc.begin(), pid_mc.end(), 2212);
-            if (it_proton_mc == pid_mc.end()) continue; // No proton found
+            if (it_proton_mc == pid_mc.end()) continue;
             int index_mc = std::distance(pid_mc.begin(), it_proton_mc);
 
             auto it_electron = std::find(pid.begin(), pid.end(), 11);
-            if (it_electron == pid.end()) continue; // No electron found
+            if (it_electron == pid.end()) continue;
             int index_electron = std::distance(pid.begin(), it_electron);
 
             auto it_electron_mc = std::find(pid_mc.begin(), pid_mc.end(), 11);
-            if (it_electron_mc == pid_mc.end()) continue; // No electron found
+            if (it_electron_mc == pid_mc.end()) continue;
             int index_electron_mc = std::distance(pid_mc.begin(), it_electron_mc);
 
-            // Fill tree with data for proton
             px_prot_gen = MC_particle.getFloat("px", index_mc);
             py_prot_gen = MC_particle.getFloat("py", index_mc);
             pz_prot_gen = MC_particle.getFloat("pz", index_mc);
@@ -190,8 +200,6 @@ void ProcessHipo(TString inputFile) {
             status_proton = status[index];
             pid_proton = pid[index];
 
-
-             // Fill tree with data for electron
             px_electron_gen = MC_particle.getFloat("px", index_electron_mc);
             py_electron_gen = MC_particle.getFloat("py", index_electron_mc);
             pz_electron_gen = MC_particle.getFloat("pz", index_electron_mc);
@@ -206,17 +214,37 @@ void ProcessHipo(TString inputFile) {
             status_electron = status[index_electron];
             pid_electron = pid[index_electron];
 
-            // Find corresponding track for the proton
-            sector_proton = -1; // Default value if sector is not found
+            sector_proton = -1;
             for (int i = 0; i < N_track; i++) {
-                if (REC_track.getInt("pindex", i) == index) { // Match track to particle index
-                    //unsigned char sector_raw = static_cast<unsigned char>(REC_track.getByte("sector", i));
-                    //sector_proton = static_cast<int>(sector_raw);
+                if (REC_track.getInt("pindex", i) == index) {
                     sector_proton = REC_track.getInt("sector", i);
                     break;
                 }
-            } 
-     
+            }
+
+            edge1_electron = edge2_electron = edge3_electron = -1;
+            edge1_proton = edge2_proton = edge3_proton = -1;
+
+            for (int i = 0; i < REC_traj.getRows(); i++) {
+                int pidx = REC_traj.getInt("pindex", i);
+                int det = REC_traj.getInt("detector", i);
+                int layer = REC_traj.getInt("layer", i);
+                float edge = REC_traj.getFloat("edge", i);
+                if (det != 6) continue; // DC detector
+
+                if (pidx == index_electron) {
+                    if (layer == 6) edge1_electron = edge;
+                    else if (layer == 18) edge2_electron = edge;
+                    else if (layer == 36) edge3_electron = edge;
+                }
+
+                if (pidx == index) {
+                    if (layer == 6) edge1_proton = edge;
+                    else if (layer == 18) edge2_proton = edge;
+                    else if (layer == 36) edge3_proton = edge;
+                }
+            }
+
             out_tree.Fill();
         }
     }

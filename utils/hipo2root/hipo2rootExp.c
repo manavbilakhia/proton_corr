@@ -60,9 +60,11 @@ void ProcessHipo(TString inputFile) {
     float vx_electron, vy_electron, vz_electron;
     int pid_electron, status_electron, sector_electron;
 
-    TFile outFile(Form("../../data_test/%s.root", inputFile.Data()), "recreate");
-    TTree out_tree("out_tree", "out_tree");
+    float edge1_electron = -1, edge2_electron = -1, edge3_electron = -1;
+    float edge1_proton = -1, edge2_proton = -1, edge3_proton = -1;
 
+    TFile outFile(Form("../../data/%s.root", inputFile.Data()), "recreate");
+    TTree out_tree("out_tree", "out_tree");
 
     out_tree.Branch("px_prot_rec", &px_prot_rec);
     out_tree.Branch("py_prot_rec", &py_prot_rec);
@@ -82,6 +84,13 @@ void ProcessHipo(TString inputFile) {
     out_tree.Branch("pid_electron", &pid_electron);
     out_tree.Branch("status_electron", &status_electron);
 
+    out_tree.Branch("edge1_electron", &edge1_electron);
+    out_tree.Branch("edge2_electron", &edge2_electron);
+    out_tree.Branch("edge3_electron", &edge3_electron);
+
+    out_tree.Branch("edge1_proton", &edge1_proton);
+    out_tree.Branch("edge2_proton", &edge2_proton);
+    out_tree.Branch("edge3_proton", &edge3_proton);
 
     // Start timing
     auto start = std::chrono::high_resolution_clock::now();
@@ -114,8 +123,7 @@ void ProcessHipo(TString inputFile) {
 
         hipo::event event;
         hipo::bank REC_particle(factory.getSchema("REC::Particle"));
-        //hipo::bank MC_event(factory.getSchema("MC::Event"));
-        //hipo::bank MC_particle(factory.getSchema("MC::Particle"));
+        hipo::bank REC_traj(factory.getSchema("REC::Traj"));
         hipo::bank REC_track(factory.getSchema("REC::Track"));
 
         while (reader.next() == true) {
@@ -124,14 +132,13 @@ void ProcessHipo(TString inputFile) {
 
             reader.read(event);
             event.getStructure(REC_particle);
-            //event.getStructure(MC_event);
-            //event.getStructure(MC_particle);
+            event.getStructure(REC_traj);
             event.getStructure(REC_track);
 
             int N = REC_particle.getRows();
             int N_track = REC_track.getRows();
-            //int N_mc_event = MC_event.getRows();
-            //int N_mc_particle = MC_particle.getRows();
+
+            if (N == 0 || REC_traj.getRows() == 0 || REC_track.getRows() == 0) continue;
 
             std::vector<int> pid(N), status(N);
             for (int i = 0; i < N; i++) {
@@ -139,27 +146,26 @@ void ProcessHipo(TString inputFile) {
                 status[i] = REC_particle.getInt("status", i);
             }
 
-    
-            if(pid.size() == 0) continue;
-            if(pid[0] != 11) continue;
- 
+            if (pid.size() == 0) continue;
+            if (pid[0] != 11) continue;
+
             // Find first reconstructed proton in REC::Particle
             auto it_proton = std::find(pid.begin(), pid.end(), 2212);
             if (it_proton == pid.end()) continue; // No proton found
             int index = std::distance(pid.begin(), it_proton);
 
-            // Find first reconstructed proton in REC::Particle
-   
             int index_electron = 0;
-            
-     
+
             px_electron_rec = REC_particle.getFloat("px", index_electron);
             py_electron_rec = REC_particle.getFloat("py", index_electron);
             pz_electron_rec = REC_particle.getFloat("pz", index_electron);
 
+            px_prot_rec = REC_particle.getFloat("px", index);
+            py_prot_rec = REC_particle.getFloat("py", index);
+            pz_prot_rec = REC_particle.getFloat("pz", index);
+
             p_proton_rec = std::sqrt(px_prot_rec * px_prot_rec + py_prot_rec * py_prot_rec + pz_prot_rec * pz_prot_rec);
             p_electron_rec = std::sqrt(px_electron_rec * px_electron_rec + py_electron_rec * py_electron_rec + pz_electron_rec * pz_electron_rec);
-
 
             vx_prot = REC_particle.getFloat("vx", index);
             vy_prot = REC_particle.getFloat("vy", index);
@@ -170,21 +176,46 @@ void ProcessHipo(TString inputFile) {
 
             status_electron = status[index_electron];
             pid_electron = pid[index_electron];
-            
-            if (pid_electron != 11){
-            cout<<"pid electron: "<<pid_electron<<endl;}
+
+            if (pid_electron != 11) {
+                std::cout << "pid electron: " << pid_electron << std::endl;
+            }
 
             // Find corresponding track for the proton
-            sector_proton = -1; // Default value if sector is not found
+            sector_proton = -1;
             for (int i = 0; i < N_track; i++) {
-                if (REC_track.getInt("pindex", i) == index) { // Match track to particle index
-                    //unsigned char sector_raw = static_cast<unsigned char>(REC_track.getByte("sector", i));
-                    //sector_proton = static_cast<int>(sector_raw);
+                if (REC_track.getInt("pindex", i) == index) {
                     sector_proton = REC_track.getInt("sector", i);
                     break;
                 }
-            } 
-     
+            }
+
+            // Reset edge variables
+            edge1_electron = edge2_electron = edge3_electron = -1;
+            edge1_proton = edge2_proton = edge3_proton = -1;
+
+            // Fill edge variables from REC::Traj
+            for (int i = 0; i < REC_traj.getRows(); i++) {
+                int pid_traj = REC_traj.getInt("pindex", i);
+                int det = REC_traj.getInt("detector", i);
+                int layer = REC_traj.getInt("layer", i);
+                float edge = REC_traj.getFloat("edge", i);
+
+                if (det != 6) continue;
+
+                if (pid_traj == index_electron) {
+                    if (layer == 6) edge1_electron = edge;
+                    else if (layer == 18) edge2_electron = edge;
+                    else if (layer == 36) edge3_electron = edge;
+                }
+
+                if (pid_traj == index) {
+                    if (layer == 6) edge1_proton = edge;
+                    else if (layer == 18) edge2_proton = edge;
+                    else if (layer == 36) edge3_proton = edge;
+                }
+            }
+
             out_tree.Fill();
         }
     }
