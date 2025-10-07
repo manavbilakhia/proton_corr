@@ -64,6 +64,9 @@ void ProcessHipo(TString inputFile) {
     float edge1_electron = -1, edge2_electron = -1, edge3_electron = -1;
     float edge1_proton = -1, edge2_proton = -1, edge3_proton = -1;
 
+    float x1_proton = -1000, y1_proton = -1000, z1_proton = -1000;
+    float x1_electron = -1000, y1_electron = -1000, z1_electron = -1000;
+
     TFile outFile(Form("../../data/%s.root", inputFile.Data()), "recreate");
     TTree out_tree("out_tree", "out_tree");
 
@@ -103,6 +106,16 @@ void ProcessHipo(TString inputFile) {
     out_tree.Branch("edge2_proton", &edge2_proton);
     out_tree.Branch("edge3_proton", &edge3_proton);
 
+    // Proton DC1 hit position
+    out_tree.Branch("x1_proton", &x1_proton);
+    out_tree.Branch("y1_proton", &y1_proton);
+    out_tree.Branch("z1_proton", &z1_proton);
+
+    // Electron DC1 hit position
+    out_tree.Branch("x1_electron", &x1_electron);
+    out_tree.Branch("y1_electron", &y1_electron);
+    out_tree.Branch("z1_electron", &z1_electron);
+
     // Start timing
     auto start = std::chrono::high_resolution_clock::now();
     gBenchmark->Start("timer");
@@ -124,6 +137,10 @@ void ProcessHipo(TString inputFile) {
     }
     file.close();
 
+    int total_events = 0;
+    int events_with_protons = 0;
+    int events_written = 0;
+
     // Process each HIPO file
     for (const auto& filePath : data) {
         hipo::reader reader;
@@ -140,6 +157,7 @@ void ProcessHipo(TString inputFile) {
         hipo::bank REC_traj(factory.getSchema("REC::Traj"));
 
         while (reader.next() == true) {
+            total_events++;
             counter++;
             if (counter == 1) continue;
 
@@ -182,6 +200,9 @@ void ProcessHipo(TString inputFile) {
             if (it_electron_mc == pid_mc.end()) continue;
             int index_electron_mc = std::distance(pid_mc.begin(), it_electron_mc);
 
+            events_with_protons++;
+
+
             px_prot_gen = MC_particle.getFloat("px", index_mc);
             py_prot_gen = MC_particle.getFloat("py", index_mc);
             pz_prot_gen = MC_particle.getFloat("pz", index_mc);
@@ -215,6 +236,7 @@ void ProcessHipo(TString inputFile) {
             pid_electron = pid[index_electron];
 
             sector_proton = -1;
+            
             for (int i = 0; i < N_track; i++) {
                 if (REC_track.getInt("pindex", i) == index) {
                     sector_proton = REC_track.getInt("sector", i);
@@ -222,6 +244,7 @@ void ProcessHipo(TString inputFile) {
                 }
             }
 
+            
             edge1_electron = edge2_electron = edge3_electron = -1;
             edge1_proton = edge2_proton = edge3_proton = -1;
 
@@ -233,23 +256,41 @@ void ProcessHipo(TString inputFile) {
                 if (det != 6) continue; // DC detector
 
                 if (pidx == index_electron) {
-                    if (layer == 6) edge1_electron = edge;
+                    if (layer == 6){ 
+                    edge1_electron = edge;
+                    x1_electron = REC_traj.getFloat("x", i);
+                    y1_electron = REC_traj.getFloat("y", i);
+                    z1_electron = REC_traj.getFloat("z", i);
+
+                    }
                     else if (layer == 18) edge2_electron = edge;
                     else if (layer == 36) edge3_electron = edge;
                 }
 
                 if (pidx == index) {
-                    if (layer == 6) edge1_proton = edge;
+                    if (layer == 6){
+                    edge1_proton = edge;
+                    x1_proton = REC_traj.getFloat("x", i);
+                    y1_proton = REC_traj.getFloat("y", i);
+                    z1_proton = REC_traj.getFloat("z", i);
+                    }
                     else if (layer == 18) edge2_proton = edge;
                     else if (layer == 36) edge3_proton = edge;
                 }
             }
 
+            
+
             out_tree.Fill();
+            events_written++;
         }
     }
 
     outFile.Write();
     outFile.Close();
     std::cout << "Wrote data into a ROOT file." << std::endl;
+
+    std::cout << "Total events: " << total_events << std::endl;
+    std::cout << "With both reconstructed and generated proton: " << events_with_protons << std::endl;
+    std::cout << "Events written: " << events_written << std::endl;
 }

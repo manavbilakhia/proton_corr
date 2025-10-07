@@ -30,6 +30,7 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //std::string root_file_path = (isBigStatistics == true) 
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
+// Sp2019DVPi0PRuns.dat.root
 
 std::string root_file_path = "../data/Fall2018OutDVPi0PRuns_pass2.dat.root";
 
@@ -259,6 +260,44 @@ void Phi_VS_Theta_FD_CD_proton_fiducial_cut(ROOT::RDF::RNode rdf) {
     std::cout << "Saved 2D histogram as Phi_VS_Theta_FD_CD.pdf" << std::endl;
 }
 
+//----------------------------------------------------Andrey asked me----------------------------------------------------------------------//
+void plot_Q2_xB_and_protonP_from_real_data(ROOT::RDF::RNode rdf) {
+
+        // Q² vs x_bj
+    auto h2 = rdf.Histo2D(
+        ROOT::RDF::TH2DModel("Q2_vs_xbj", "Q^{2} vs x_{Bj};x_{Bj};Q^{2} [GeV^{2}]",
+                             100, 0, 1, 100, 0, 10),"xB", "Q2");
+    TCanvas c1("c1", "Q2 vs xbj", 800, 600);
+    h2->Draw("COLZ");
+    c1.SaveAs((OUTPUT_FOLDER + "Q2_vs_xbj_data.pdf").c_str());
+
+    // Q² 1D
+    auto hQ2 = rdf.Histo1D(
+        ROOT::RDF::TH1DModel("Q2_dist", "Q^{2} Distribution;Q^{2} [GeV^{2}];Events", 100, 0, 10),"Q2");
+    TCanvas c2("c2", "Q2 dist", 800, 600);
+    hQ2->Draw();
+    c2.SaveAs((OUTPUT_FOLDER + "Q2_hist_data.pdf").c_str());
+
+      // xB 1D
+    auto h_xB = rdf.Histo1D(
+        ROOT::RDF::TH1DModel("h_xB", "x_{B} Distribution;xB;Events", 100, 0, 1),"xB");
+    TCanvas c3("c3", "xB dist", 800, 600);
+    h_xB->Draw();
+    c3.SaveAs((OUTPUT_FOLDER + "xB_hist_data.pdf").c_str());
+
+    auto h_Q2_vs_protonP = rdf.Histo2D(
+        ROOT::RDF::TH2DModel("Q2_vs_protonP", "Q^{2} vs P_{proton};P_{proton} [GeV];Q^{2} [GeV^{2}]",
+                             100, 0, 10, 100, 0, 10),"p_proton_rec", "Q2");
+    TCanvas c4("c4", "Q2 vs protonP", 800, 600);
+    h_Q2_vs_protonP->Draw("COLZ");
+    c4.SaveAs((OUTPUT_FOLDER + "Q2_vs_protonP_data.pdf").c_str());
+
+    std::cout << "Saved Q² vs xB and proton momentum plots." << std::endl;
+
+}
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------//
 
 int main() {
     auto start = std::chrono::high_resolution_clock::now(); // STRAT
@@ -275,17 +314,22 @@ int main() {
     
     auto init_rdf = rdf//.Filter(p_proton_gen > 0.0)
                         //.Filter(p_proton_rec > 0.0)
-                        .Define("proton_rec_4_momentum", "TLorentzVector(px_prot_rec, py_prot_rec, pz_prot_rec, 0.938272)")
+                        .Define("proton_rec_4_momentum", "TLorentzVector(px_prot_rec, py_prot_rec, pz_prot_rec, sqrt(px_prot_rec*px_prot_rec+py_prot_rec*py_prot_rec+pz_prot_rec*pz_prot_rec+0.938272*0.938272) )")
                         .Define("Phi_rec", "proton_rec_4_momentum.Phi()*TMath::RadToDeg()")  
                         .Define("Theta_rec", "proton_rec_4_momentum.Theta()*TMath::RadToDeg()")
                         .Define("detector", [](int status) { 
                             return status < 4000 ? std::string("FD") : (status < 8000 ? std::string("CD") : std::string("NA")); 
                         }, {"status_proton"})
-                        .Define("electron_rec_4_momentum", "TLorentzVector(px_electron_rec, py_electron_rec, pz_electron_rec, 0.000511)")
+                        .Define("electron_rec_4_momentum", "TLorentzVector(px_electron_rec, py_electron_rec, pz_electron_rec, sqrt(px_electron_rec*px_electron_rec+py_electron_rec*py_electron_rec+pz_electron_rec*pz_electron_rec+0.000511*0.000511) )")
                         .Define("Phi_electron_rec", "electron_rec_4_momentum.Phi()*TMath::RadToDeg()")
                         .Define("Theta_electron_rec", "electron_rec_4_momentum.Theta()*TMath::RadToDeg()")
-                        .Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 10.0 && edge2_proton > 10.0 && edge3_proton > 20.0")
-                        .Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 5.0 && edge2_electron > 5.0 && edge3_electron > 10.0");
+                        .Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 7.0 && edge2_electron > 7.0 && edge3_electron > 15.0")
+                        .Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 7.0 && edge2_proton > 7.0 && edge3_proton > 12.0")
+                        .Define("el_initial", "TLorentzVector(0, 0, 10.6, 10.6)")
+                        .Define("Q2", "-(el_initial-electron_rec_4_momentum).M2()")
+                        .Define("nu", "el_initial.E() - electron_rec_4_momentum.E()")
+                        .Define("xB", "Q2/(2*0.938272*nu)");
+                        
 
     // Print column names
     //std::cout << "Columns in RDataFrame:" << std::endl;
@@ -299,17 +343,19 @@ int main() {
     //init_rdf.Filter("detector == \"FD\" && sector_proton != 1 && sector_proton != 2 && sector_proton != 3 && sector_proton != 4 && sector_proton != 5 && sector_proton != 6 ").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
-    Theta_VS_momentum_electron(init_rdf);
-    Theta_VS_momentum_electron_fiducial_cut(init_rdf);
-    Phi_VS_Theta_FD_CD_proton(init_rdf);
-    Phi_VS_Theta_FD_CD_proton_fiducial_cut(init_rdf);
-    Phi_VS_momentum_FD_CD_proton(init_rdf);
-    Phi_VS_momentum_FD_CD_proton_fiducial_cut(init_rdf);
-    Theta_VS_momentum_FD_proton_fiducial_cut(init_rdf);
-    Theta_VS_momentum_FD_CD_proton(init_rdf);
-    Theta_VS_momentum_FD_proton_theta_gt_40_fiducial_cut(init_rdf);
-    Theta_VS_momentum_FD_proton_theta_gt_40(init_rdf);
-    
+    //Theta_VS_momentum_electron(init_rdf);
+    //Theta_VS_momentum_electron_fiducial_cut(init_rdf);
+    //Phi_VS_Theta_FD_CD_proton(init_rdf);
+    //Phi_VS_Theta_FD_CD_proton_fiducial_cut(init_rdf);
+    //Phi_VS_momentum_FD_CD_proton(init_rdf);
+    //Phi_VS_momentum_FD_CD_proton_fiducial_cut(init_rdf);
+    //Theta_VS_momentum_FD_proton_fiducial_cut(init_rdf);
+    //Theta_VS_momentum_FD_CD_proton(init_rdf);
+    //Theta_VS_momentum_FD_proton_theta_gt_40_fiducial_cut(init_rdf);
+    //Theta_VS_momentum_FD_proton_theta_gt_40(init_rdf);
+    plot_Q2_xB_and_protonP_from_real_data(init_rdf);
+
+
 
 
     auto end = std::chrono::high_resolution_clock::now(); // END

@@ -30,12 +30,16 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //std::string root_file_path = (isBigStatistics == true) 
 //? "../data/AlexRuns.dat.root"
 //: "../data_test/NickRuns.dat.root";
+//andrey_runs_FULL.dat.root
+// NickRuns.dat_NO_EDGE
 
-std::string root_file_path = "../data_test/KrishnaSimuRuns.dat.root";
+std::string root_file_path = "../data/andrey_runs_FULL.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_krishna_runs" + farm_out ;
+//analysis_out_andrey_runs_FULL
+
+const std::string OUTPUT_FOLDER = "../analysis_out_andrey_runs_FULL" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -93,6 +97,7 @@ int main() {
                         .Define("Phi_gen", "proton_gen_4_momentum.Phi()*TMath::RadToDeg()")
                         .Define("Theta_rec", "proton_rec_4_momentum.Theta()*TMath::RadToDeg()")
                         .Define("Theta_gen", "proton_gen_4_momentum.Theta()*TMath::RadToDeg()")
+                        //.Define("Theta_proton_DC", "TMath::ATan(sqrt(x1_proton*x1_proton + y1_proton*y1_proton)/z1_proton)*TMath::RadToDeg()")
                         .Define("detector", [](int status) { 
                             return status < 4000 ? std::string("FD") : (status < 8000 ? std::string("CD") : std::string("NA")); 
                         }, {"status_proton"})
@@ -105,9 +110,10 @@ int main() {
                         .Define("E_proton_rec", "sqrt(px_prot_rec*px_prot_rec + py_prot_rec*py_prot_rec + pz_prot_rec*pz_prot_rec + 0.938272*0.938272)") // const number is mass of proton
                         .Define("E_proton_gen", "sqrt(px_prot_gen*px_prot_gen + py_prot_gen*py_prot_gen + pz_prot_gen*pz_prot_gen + 0.938272*0.938272)") // const number is mass of proton
                         .Define("delta_E", "E_proton_rec - E_proton_gen")
-                        .Define("dp_norm", "delta_p /p_proton_rec")
-                        .Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 2.5 && edge2_proton > 2.5 && edge3_proton > 9.0")
-                        .Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 5.0 && edge2_electron > 5.0 && edge3_electron > 10.0");
+                        .Define("dp_norm", "delta_p /p_proton_rec");
+                        //.Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 5.0 && edge2_electron > 5.0 && edge3_electron > 10.0")
+                        //.Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 2.5 && edge2_proton > 2.5 && edge3_proton > 9.0");
+                        
 
                 
 
@@ -124,41 +130,19 @@ int main() {
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
 
-    //plot_delta_P_VS_P_rec(init_rdf);
-    //plot_theta_slices_2D(init_rdf, OUTPUT_FOLDER);
-    //plot_delta_P(init_rdf);
-    //plot_delta_P_above_below_1GeV(init_rdf);
-    //plot_delta_P_VS_P_rec_above_below_1GeV(init_rdf);
-    Theta_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
-    //Phi_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
-    //Phi_VS_Theta_FD_CD(init_rdf,OUTPUT_FOLDER);
-    //delta_P_VS_P_rec_FD_sectors_2D_theta_sliced(init_rdf, OUTPUT_FOLDER, true);
-    //delta_P_VS_P_rec_FD_sectors_2D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
-    //delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
-    //delta_P_VS_P_rec_with_cut(init_rdf, OUTPUT_FOLDER);
-    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", true);
-    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"high", false);
-    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", true);
-    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", false);
-    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", true);
-    //delta_P_VS_P_rec_FD_sectors_1D(init_rdf,OUTPUT_FOLDER,"low", false);
-    //delta_P_VS_P_rec_FD_sectors_2D(init_rdf,OUTPUT_FOLDER);
-    //delta_P_VS_P_rec_CD_1D(init_rdf,OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_CD(init_rdf,OUTPUT_FOLDER);
-    //Theta_VS_momentum_FD_CD(init_rdf);
-    Phi_VS_momentum_FD_CD(init_rdf,OUTPUT_FOLDER);
-    Phi_VS_Theta_FD_CD(init_rdf,OUTPUT_FOLDER);
-    //plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
-    //gen_theta_VS_rec_theta(init_rdf);
-    //gen_phi_VS_rec_phi(init_rdf);
-    //gen_P_VS_rec_P(init_rdf);
-    //plot_delta_P_VS_P_rec(init_rdf);
-    //plot_momenta_components(init_rdf, OUTPUT_FOLDER);
-    delta_P_VS_P_rec_FD_sectors_2D(init_rdf, OUTPUT_FOLDER);
-    
+    delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "low", false);
+    //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "high", false);
 
-    //delta_P_VS_P_rec_FD_sectors_theta_bins_1D(init_rdf, OUTPUT_FOLDER);
-    //plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
+    //plot_delta_P_VS_P_rec(init_rdf, OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
+    //Theta_VS_momentum_FD_CD(init_rdf, OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_FD_sectors_2D(init_rdf, OUTPUT_FOLDER);
+    //delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
+    //plot_XY_DC1(init_rdf, OUTPUT_FOLDER);
+    //Theta_proton_DC_VS_momentum_FD(init_rdf, OUTPUT_FOLDER);
+
+    //plot_W_Q2_rec_from4v(init_rdf, OUTPUT_FOLDER);
+  
 
     
     //init_rdf.Display({"p_proton_gen", "p_proton_rec", "delta_p"}, 10)->Print();
