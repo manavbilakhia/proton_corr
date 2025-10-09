@@ -32,11 +32,11 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //: "../data_test/NickRuns.dat.root";
 // Sp2019DVPi0PRuns.dat.root
 
-std::string root_file_path = "../data/Fall2018OutDVPi0PRuns_pass2.dat.root";
+std::string root_file_path = "../data/Sp2019DVPi0PRuns.dat.root";
 
 
 // Define the output folder as a constant
-const std::string OUTPUT_FOLDER = "../analysis_out_Fall2018OutDVPi0P_pass2" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_in_Sp2019DVPi0P" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -70,7 +70,81 @@ ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path)
 
 // Use ROOT::RDF::RNode instead of RDataFrame& to fix type mismatch
 
+//-------------------------------------------------------------------------------W, Q2 -----------------------------------------------------------
+void plot_W_Q2_rec_from4v(ROOT::RDF::RNode rdf, const std::string& output_folder) {
+    const double Ebeam = 10.6;
+    const double Mp    = 0.938272;
 
+    auto df = rdf
+        // Q^2 = -q^2, with q = e_initial - e_final(rec)
+        .Define("Q2_rec",
+                [Ebeam](const TLorentzVector& e_rec_in) {
+                    TLorentzVector e_f = e_rec_in;
+                    if (e_f.E() == 0.0) e_f.SetE(e_f.P());  // treat as massless if E was set 0
+                    TLorentzVector e_i(0.0, 0.0, Ebeam, Ebeam);
+                    TLorentzVector q = e_i - e_f;
+                    return -q.M2();
+                },
+                {"electron_rec_4_momentum"})
+        // W = sqrt((p_target + q)^2), p_target = (0,0,0,Mp)
+        .Define("W_rec",
+                [Ebeam, Mp](const TLorentzVector& e_rec_in) {
+                    TLorentzVector e_f = e_rec_in;
+                    if (e_f.E() == 0.0) e_f.SetE(e_f.P());
+                    TLorentzVector e_i(0.0, 0.0, Ebeam, Ebeam);
+                    TLorentzVector q = e_i - e_f;
+                    TLorentzVector p_target(0.0, 0.0, 0.0, Mp);
+                    return (p_target + q).M();
+                },
+                {"electron_rec_4_momentum"});
+
+
+
+    // 1) W distribution
+    {
+        TCanvas cW("cW_rec4v","W distribution",800,600);
+        auto hW = df.Histo1D(
+            ROOT::RDF::TH1DModel("hW_rec4v","W distribution;W (GeV);Counts",
+                                 100, 1, 5),
+            "W_rec");
+        hW->SetLineWidth(2);
+        hW->Draw("HIST");
+        cW.SaveAs((output_folder + "W_rec4v.pdf").c_str());
+    }
+
+    // 2) Q^2 distribution
+    {
+        TCanvas cQ2("cQ2_rec4v","Q^{2} distribution",800,600);
+        auto hQ2 = df.Histo1D(
+            ROOT::RDF::TH1DModel("hQ2_rec4v","Q^{2} distribution;Q^{2} (GeV^{2});Counts",
+                                 100, 0, 11),
+            "Q2_rec");
+        hQ2->SetLineWidth(2);
+        hQ2->Draw("HIST");
+        cQ2.SaveAs((output_folder + "Q2_rec4v.pdf").c_str());
+    }
+
+    // 3) 2D W vs Q^2 (X=Q^2, Y=W)
+    {
+        TCanvas c2D("cWQ2_rec4v","W vs Q^{2}",900,700);
+        c2D.SetRightMargin(0.15);
+        auto h2 = df.Histo2D(
+            ROOT::RDF::TH2DModel("hWvsQ2_rec4v",
+                                 "Q^{2} vs W; W (GeV); Q^{2} (GeV^{2})",
+                                 100, 0, 5,
+                                 100, 1 , 11),
+            "W_rec", "Q2_rec");
+        h2->Draw("COLZ");
+        c2D.SaveAs((output_folder + "W_vs_Q2_rec4v.pdf").c_str());
+    }
+
+    std::cout << "[plot_W_Q2_rec_from4v] Saved: "
+              << output_folder << "W_rec4v.pdf, "
+              << output_folder << "Q2_rec4v.pdf, "
+              << output_folder << "W_vs_Q2_rec4v.pdf" << std::endl;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -353,8 +427,9 @@ int main() {
     //Theta_VS_momentum_FD_CD_proton(init_rdf);
     //Theta_VS_momentum_FD_proton_theta_gt_40_fiducial_cut(init_rdf);
     //Theta_VS_momentum_FD_proton_theta_gt_40(init_rdf);
-    plot_Q2_xB_and_protonP_from_real_data(init_rdf);
+    //plot_Q2_xB_and_protonP_from_real_data(init_rdf);
 
+    plot_W_Q2_rec_from4v(init_rdf, OUTPUT_FOLDER);
 
 
 

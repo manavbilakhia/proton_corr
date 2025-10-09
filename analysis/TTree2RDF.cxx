@@ -33,13 +33,13 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //andrey_runs_FULL.dat.root
 // NickRuns.dat_NO_EDGE
 
-std::string root_file_path = "../data/andrey_runs_FULL.dat.root";
+std::string root_file_path = "../data/KrishnaSimuRuns.dat.root";
 
 
 // Define the output folder as a constant
 //analysis_out_andrey_runs_FULL
 
-const std::string OUTPUT_FOLDER = "../analysis_out_andrey_runs_FULL" + farm_out ;
+const std::string OUTPUT_FOLDER = "../analysis_out_krishna_runs" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -130,19 +130,20 @@ int main() {
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
 
-    delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "low", false);
+    //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "low", false);
     //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "high", false);
 
     //plot_delta_P_VS_P_rec(init_rdf, OUTPUT_FOLDER);
     //delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
     //Theta_VS_momentum_FD_CD(init_rdf, OUTPUT_FOLDER);
-    //delta_P_VS_P_rec_FD_sectors_2D(init_rdf, OUTPUT_FOLDER);
+ 
     //delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
     //plot_XY_DC1(init_rdf, OUTPUT_FOLDER);
     //Theta_proton_DC_VS_momentum_FD(init_rdf, OUTPUT_FOLDER);
 
-    //plot_W_Q2_rec_from4v(init_rdf, OUTPUT_FOLDER);
+    plot_W_Q2_rec_from4v(init_rdf, OUTPUT_FOLDER);
   
+//plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
 
     
     //init_rdf.Display({"p_proton_gen", "p_proton_rec", "delta_p"}, 10)->Print();
