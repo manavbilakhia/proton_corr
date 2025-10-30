@@ -1,4 +1,5 @@
-// to run, use  g++ TTree2RDF.cxx -o executable `root-config --cflags --glibs`
+// to run, use:
+//g++ TTree2RDF.cxx -o executable `root-config --cflags --glibs`
 // ./executable
 
 #include <iostream>
@@ -32,14 +33,24 @@ std::string farm_out = (toFarm == true) ? "/farm_out/" : "/";
 //: "../data_test/NickRuns.dat.root";
 //andrey_runs_FULL.dat.root
 // NickRuns.dat_NO_EDGE
+// proton_electron_toy_simu.root
+//andrey_new_runs.dat.root
+// timothy_aao_norad_gen_Pi0P.root
+// clasdis_rga_fall18_inbending.root
 
-std::string root_file_path = "../data/KrishnaSimuRuns.dat.root";
+
+std::string root_file_path = "../data/proton_electron_toy_simu.root";
 
 
 // Define the output folder as a constant
 //analysis_out_andrey_runs_FULL
+//analysis_out_proton_electron_toy
+//analysis_out_andrey_new_runs
+// analysis_out_timothy_aao_norad_gen_Pi0P
+// analysis_out_clasdis_rga_fall18_inbending
 
-const std::string OUTPUT_FOLDER = "../analysis_out_krishna_runs" + farm_out ;
+
+const std::string OUTPUT_FOLDER = "../analysis_out_proton_electron_toy" + farm_out ;
 
 
 ROOT::RDataFrame convert_ttrees_to_rdataframe(const std::string &root_file_path) {
@@ -110,9 +121,9 @@ int main() {
                         .Define("E_proton_rec", "sqrt(px_prot_rec*px_prot_rec + py_prot_rec*py_prot_rec + pz_prot_rec*pz_prot_rec + 0.938272*0.938272)") // const number is mass of proton
                         .Define("E_proton_gen", "sqrt(px_prot_gen*px_prot_gen + py_prot_gen*py_prot_gen + pz_prot_gen*pz_prot_gen + 0.938272*0.938272)") // const number is mass of proton
                         .Define("delta_E", "E_proton_rec - E_proton_gen")
-                        .Define("dp_norm", "delta_p /p_proton_rec");
-                        //.Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 5.0 && edge2_electron > 5.0 && edge3_electron > 10.0")
-                        //.Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 2.5 && edge2_proton > 2.5 && edge3_proton > 9.0");
+                        .Define("dp_norm", "delta_p /p_proton_rec")
+                        .Define("DC_fiducial_cut_electron", "detector == \"FD\" && edge1_electron > 5.0 && edge2_electron > 5.0 && edge3_electron > 10.0")
+                        .Define("DC_fiducial_cut_proton", "detector == \"FD\" && edge1_proton > 2.5 && edge2_proton > 2.5 && edge3_proton > 9.0");
                         
 
                 
@@ -130,8 +141,11 @@ int main() {
     //init_rdf.Filter("status_proton > 8000").Display({"pid_proton", "status_proton", "detector","sector_proton"}, 100)->Print();
 
 
-    //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "low", false);
-    //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "high", false);
+    //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "low", true);
+    //delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "high", true);
+
+    delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "low", false);
+    delta_P_VS_P_rec_FD_unified_1D(init_rdf, OUTPUT_FOLDER, "high", false);
 
     //plot_delta_P_VS_P_rec(init_rdf, OUTPUT_FOLDER);
     //delta_P_VS_P_rec_FD_sectors_1D_theta_sliced(init_rdf, OUTPUT_FOLDER, false);
@@ -141,9 +155,13 @@ int main() {
     //plot_XY_DC1(init_rdf, OUTPUT_FOLDER);
     //Theta_proton_DC_VS_momentum_FD(init_rdf, OUTPUT_FOLDER);
 
-    plot_W_Q2_rec_from4v(init_rdf, OUTPUT_FOLDER);
-  
-//plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
+    //plot_W_Q2_rec_from4v(init_rdf, OUTPUT_FOLDER);
+
+    //plot_delta_P_VS_P_rec_FD_Theta_below_above(init_rdf, OUTPUT_FOLDER);
+
+    //Theta_VS_momentum_FD_CD(init_rdf, OUTPUT_FOLDER);
+    //plot_P_rec_P_gen(init_rdf, OUTPUT_FOLDER);
+
 
     
     //init_rdf.Display({"p_proton_gen", "p_proton_rec", "delta_p"}, 10)->Print();

@@ -140,7 +140,7 @@ void plot_delta_P_VS_P_rec(ROOT::RDF::RNode rdf, const std::string& output_folde
     rdf = rdf.Filter("detector == \"FD\" && DC_fiducial_cut_electron == true && DC_fiducial_cut_proton == true "); 
     //rdf = rdf.Filter("Theta_rec < 27");
     TCanvas canvas("c5", "delta P VS P_rec", 800, 600);
-    auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 200, 0, 3, 200, -0.1, 0.1), "p_proton_rec", "delta_p");
+    auto hist2D = rdf.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec", "delta P vs P_rec;  P_rec (GeV); delta P (GeV)", 200, 0, 6, 200, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D->Draw("COLZ");
     canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD.pdf").c_str());
     std::cout << "Saved 2D histogram as delta_P_VS_P_rec_FD.pdf" << std::endl;
@@ -155,10 +155,10 @@ void plot_delta_P_VS_P_rec_FD_Theta_below_above(ROOT::RDF::RNode rdf, const std:
     TCanvas canvas("c1", "delta_P", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist2D_above = rdf_above.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_above_Theta", "delta P vs P_rec for theta > 33 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 2.5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
+    auto hist2D_above = rdf_above.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_above_Theta", "delta P vs P_rec for theta > 33 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D_above->Draw("COLZ");
     canvas.cd(2);
-    auto hist2D_below = rdf_below.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_below_Theta", "delta P vs P_rec for theta < 27 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 3, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
+    auto hist2D_below = rdf_below.Histo2D(ROOT::RDF::TH2DModel("delta_P_VS_P_rec_below_Theta", "delta P vs P_rec for theta < 27 deg;  P_rec (GeV); delta P (GeV)", 100, 0, 5, 100, -0.1, 0.1), "p_proton_rec", "delta_p");
     hist2D_below->Draw("COLZ");
     canvas.SaveAs((output_folder + "delta_P_VS_P_rec_FD_Theta_high_low.pdf").c_str());
     std::cout << "Saved 1D histogram as delta_P_VS_P_rec_FD_Theta_high_low.pdf" << std::endl;
@@ -168,10 +168,10 @@ void plot_P_rec_P_gen(ROOT::RDF::RNode rdf, const std::string& output_folder) {
     TCanvas canvas("c6", "P_rec VS P_gen", 800, 600);
     canvas.Divide(1,2);
     canvas.cd(1);
-    auto hist1 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_gen", "p_proton_gen; p_proton_gen (GeV); Events", 100, 0, 2.5), "p_proton_gen");
+    auto hist1 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_gen", "p_proton_gen; p_proton_gen (GeV); Events", 100, 0, 5), "p_proton_gen");
     hist1->Draw();
     canvas.cd(2);
-    auto hist2 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_rec", "p_proton_rec; p_proton_rec (GeV); Events", 100, 0, 2.5), "p_proton_rec");
+    auto hist2 = rdf.Histo1D(ROOT::RDF::TH1DModel("p_proton_rec", "p_proton_rec; p_proton_rec (GeV); Events", 100, 0, 5), "p_proton_rec");
     hist2->Draw();
 
     canvas.SaveAs((output_folder + "P_rec_P_gen.pdf").c_str());
@@ -709,24 +709,24 @@ void delta_P_VS_P_rec_FD_unified_1D(ROOT::RDF::RNode rdf,
       ? rdf_filtered.Histo2D(
             ROOT::RDF::TH2DModel("h2_unified",
                                  "delta_p/p vs P_{rec} (FD, all sectors);P_{rec} (GeV/c);delta_p/p",
-                                 100, 0.0, 3.0, 200, -0.2, 0.1),
+                                 100, 0.0, 6.0, 200, -0.15, 0.05),
             "p_proton_rec", "dp_norm")
       : rdf_filtered.Histo2D(
             ROOT::RDF::TH2DModel("h2_unified",
                                  "delta P vs P_{rec} (FD, all sectors);P_{rec} (GeV/c);delta P (GeV/c)",
-                                 100, 0.0, 3.0, 200, -0.1, 0.1),
+                                 100, 0.0, 6.0, 200, -0.15, 0.15),
             "p_proton_rec", "delta_p");
 
   // Momentum-bin edges (same as your sector version)
   std::vector<double> momentum_bins =
       (thetaBin == "low")
-          ? std::vector<double>{0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.7}
-          : std::vector<double>{0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.0};
+          ? std::vector<double>{0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 4.4, 4.6, 4.8, 5.0} 
+          : std::vector<double>{0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0};
   const size_t num_bins = momentum_bins.size() - 1;
 
   // Slices canvas (show all momentum-bin projections)
-  const int nCols = 5;
-  const int nRows = 5; // fits 7–9 bins used here
+  const int nCols = 6;
+  const int nRows = 6; // fits 7–9 bins used here
   TCanvas* cSlices = new TCanvas(Form("unified_%s_slices", thetaBin.c_str()),
                                  Form("Unified %s slices (FD, all sectors)", dp_Or_dpp.c_str()),
                                  1400, 900);
@@ -770,23 +770,70 @@ void delta_P_VS_P_rec_FD_unified_1D(ROOT::RDF::RNode rdf,
                       p_low, p_high, dp_Or_dpp.c_str()));
     hY->Draw();
 
-    // Two-step Gaussian fit (same windows you used)
-    TF1* fit_init = new TF1("gaus_init_unified", "gaus", -0.2, 0.01);
-    hY->Fit(fit_init, "RQ0");
-    double mean_init = fit_init->GetParameter(1);
-    double sigma_init = fit_init->GetParameter(2);
+        // --- Adaptive, momentum-dependent two-step Gaussian fit ---
 
-    TF1* fit_refined = new TF1("gaus_refined_unified", "gaus",
-                               mean_init - sigma_init, mean_init + sigma_init);
+    // 1) Robust location/scale from the data
+    int imax = hY->GetMaximumBin();
+    double mode = hY->GetBinCenter(imax);
+
+    // central 68% interval → robust sigma
+    Double_t probs[3] = {0.16, 0.50, 0.84}, q[3] = {0,0,0};
+    hY->GetQuantiles(3, q, probs);
+    double sigma68 = 0.5 * (q[2] - q[0]);
+    if (!(sigma68 > 0) || !std::isfinite(sigma68)) {
+      sigma68 = hY->GetRMS();                            // fallback
+      if (!(sigma68 > 0) || !std::isfinite(sigma68))     // ultimate fallback
+        sigma68 = 3.0 * hY->GetBinWidth(1);
+    }
+
+    // Optionally rebin if the peak is too narrow in bins (stabilizes fit)
+    if (hY->GetEntries() > 0) {
+      double binsPerSigma = sigma68 / hY->GetBinWidth(1);
+      if (binsPerSigma < 6.0 && hY->GetNbinsX() >= 80) hY->Rebin(2);
+    }
+
+    // 2) Momentum-dependent opening factor (wider at high p)
+    auto k_init_for_p = [](double p){
+      // 1.3 at low p, grows linearly to 2.3 by p≈4.5, then capped
+      double k = 1.3 + 0.25 * std::max(0.0, std::min( (p - 1.5), 4.0 ));
+      return std::min(2.3, k);
+    };
+    double k1 = k_init_for_p(p_center);
+
+    // Initial fit window around the mode, clamped to axis range
+    double xLo = std::max(hY->GetXaxis()->GetXmin(), mode - k1 * sigma68);
+    double xHi = std::min(hY->GetXaxis()->GetXmax(), mode + k1 * sigma68);
+    if (xLo >= xHi) {                    // robust fallback if something went wrong
+      xLo = mode - 1.5 * sigma68;
+      xHi = mode + 1.5 * sigma68;
+    }
+
+    // Initial fit
+    TF1* fit_init = new TF1(Form("gaus_init_unified_%zu", bin_idx), "gaus", xLo, xHi);
+    hY->Fit(fit_init, "RQ0");
+
+    // 3) Refine within ±k2·σ around the fitted mean (symmetric)
+    double mu    = fit_init->GetParameter(1);
+    double sigma = std::abs(fit_init->GetParameter(2));
+    if (!(sigma > 0) || !std::isfinite(sigma)) sigma = sigma68;
+
+    double k2 = 1.25;  // narrower core window for refinement
+    double rLo = std::max(hY->GetXaxis()->GetXmin(), mu - k2 * sigma);
+    double rHi = std::min(hY->GetXaxis()->GetXmax(), mu + k2 * sigma);
+    if (rLo >= rHi) { rLo = mu - 1.2 * sigma; rHi = mu + 1.2 * sigma; }
+
+    TF1* fit_refined = new TF1(Form("gaus_refined_unified_%zu", bin_idx), "gaus", rLo, rHi);
     hY->Fit(fit_refined, "RQ");
 
-    double mean = fit_refined->GetParameter(1);
-    double mean_err = fit_refined->GetParError(1); // keep original errors, unchanged
+    // Extract and push to the graph
+    double mean     = fit_refined->GetParameter(1);
+    //double mean_err = fit_refined->GetParError(1);
+    double mean_err = 0.001; // uniform error for fitting later
 
-    // Append a point (robust even if some bins are skipped)
     int ip = gAll->GetN();
     gAll->SetPoint(ip, p_center, mean);
     gAll->SetPointError(ip, 0.0, mean_err);
+
 
     // Optional: keep the slice drawn but free the heap objects
     gPad->Update();         // ensure it is rendered
@@ -845,62 +892,92 @@ void delta_P_VS_P_rec_FD_unified_1D(ROOT::RDF::RNode rdf,
 
   // Fit range (independent from axis display)
   double xmin_fit = 0.25, xmax_fit = 3.0;
+  if(thetaBin=="low"){  xmin_fit = 0.25, xmax_fit = 2.0;}
 
-// --- Fit unified data with f(p) = A/(p + B) ---
-// Seed from endpoints and keep the pole left of the data range
+
+// --- Fit unified data with f(p) = A/(B + C*sqrt(p) + D*p + E*p^2) ---
+// Use only points inside [xmin_fit, xmax_fit] for endpoint-based seeds
 double pmin = 1e9, pmax = -1e9, pL = 0, yL = 0, pR = 0, yR = 0;
 for (int k = 0; k < gAll->GetN(); ++k) {
   double xp, yp; gAll->GetPoint(k, xp, yp);
   if (!std::isfinite(xp) || !std::isfinite(yp)) continue;
+  if (xp < xmin_fit || xp > xmax_fit) continue; // restrict to fit window
   if (xp < pmin) { pmin = xp; pL = xp; yL = yp; }
   if (xp > pmax) { pmax = xp; pR = xp; yR = yp; }
 }
 
-// A ≈ p*y at high p
+// A ≈ p*y at high p (same heuristic as before)
 double A0 = (std::isfinite(pR * yR) ? pR * yR : -1e-2);
 if (!std::isfinite(A0)) A0 = -1e-2;
 
-// From y = A/(p+B) ⇒ B = A/y − p (average both ends if possible)
+// From old y ~ A/(p+B) seed, reuse B0; C0,D0,E0 start simple
 auto seedB = [&](double p, double y) {
   return (std::abs(y) > 1e-12) ? (A0 / y - p) : (-p + 0.05);
 };
 double B0 = 0.5 * (seedB(pL, yL) + seedB(pR, yR));
+if (!std::isfinite(B0)) B0 = 0.1;  // fallback
 
-// Constrain the pole p = −B to be left of the data
-const double eps = 0.02;
-double Bmin = -pmin + eps;   // B > −pmin so pole is left of first bin
-double Bmax = 5.0;
-if (!std::isfinite(B0) || B0 < Bmin || B0 > Bmax) B0 = Bmin + 0.1;
+double C0 = 0.0;   // let fitter find small sqrt(p) piece
+double D0 = 1.0;   // keeps continuity with old A/(p+B) ~ A/(B + 1*p)
+double E0 = 0.0;   // start without p^2 term, add in second stage
 
-TF1* fitFunc = new TF1("fit_unified_A_over_p_plus_B", "[0]/(x + [1])",
-                       xmin_fit, xmax_fit);
-fitFunc->SetParNames("A","B");
-fitFunc->SetParameters(A0, B0);
-fitFunc->SetParLimits(1, Bmin, Bmax);   // constrain B
-// A sign is dataset-dependent; leave free or keep a mild range if desired
-// fitFunc->SetParLimits(0, -1.0, 1.0);
+// Conservative bounds to help keep denominator > 0 over the window
+const double eps = 1e-3;
+double Bmin = eps,  Bmax = 20.0;
+double Cmin = -5.0, Cmax =  5.0;
+double Dmin =  0.0, Dmax =  5.0;
+double Emin =  0.0, Emax =  5.0;
 
+// Build function
+TF1* fitFunc = new TF1("fit_unified_ABCDsqE",
+    "[0]/([1] + [2]*sqrt(x) + [3]*x + [4]*x*x)", xmin_fit, xmax_fit);
+fitFunc->SetParNames("A","B","C","D","E");
+fitFunc->SetParameters(A0, B0, C0, D0, E0);
+fitFunc->SetParLimits(1, Bmin, Bmax);
+fitFunc->SetParLimits(2, Cmin, Cmax);
+fitFunc->SetParLimits(3, Dmin, Dmax);
+fitFunc->SetParLimits(4, Emin, Emax);
+
+// ---- Stage 1: stabilize (fix E=0), then fit in the chosen range
+fitFunc->FixParameter(4, 0.0);
+gAll->Fit(fitFunc, "RQ");   // "R" = use [xmin_fit, xmax_fit]; "Q" = quiet
+
+// ---- Stage 2: release E and refit
+fitFunc->ReleaseParameter(4);
 gAll->Fit(fitFunc, "RQ");
 
+// Draw and annotate
 fitFunc->SetLineColor(kBlue);
 fitFunc->SetLineStyle(1);
 fitFunc->Draw("SAME");
 
 double A = fitFunc->GetParameter(0);
 double B = fitFunc->GetParameter(1);
+double C = fitFunc->GetParameter(2);
+double D = fitFunc->GetParameter(3);
+double E = fitFunc->GetParameter(4);
+
 double eA = fitFunc->GetParError(0);
 double eB = fitFunc->GetParError(1);
+double eC = fitFunc->GetParError(2);
+double eD = fitFunc->GetParError(3);
+double eE = fitFunc->GetParError(4);
+
 double chi2 = fitFunc->GetChisquare();
-int ndf     = fitFunc->GetNDF();
+int    ndf  = fitFunc->GetNDF();
 
 TLatex latex;
 latex.SetTextFont(42);
-latex.SetTextSize(0.04);
+latex.SetTextSize(0.038);
 latex.SetNDC();
-latex.DrawLatex(0.55, 0.24, Form("A = %.3e #pm %.1e", A, eA));
-latex.DrawLatex(0.55, 0.20, Form("B = %.3e #pm %.1e", B, eB));
+latex.DrawLatex(0.55, 0.36, Form("A = %.3e #pm %.1e", A, eA));
+latex.DrawLatex(0.55, 0.32, Form("B = %.3e #pm %.1e", B, eB));
+latex.DrawLatex(0.55, 0.28, Form("C = %.3e #pm %.1e", C, eC));
+latex.DrawLatex(0.55, 0.24, Form("D = %.3e #pm %.1e", D, eD));
+latex.DrawLatex(0.55, 0.20, Form("E = %.3e #pm %.1e", E, eE));
 latex.DrawLatex(0.55, 0.16, Form("#chi^{2}/NDF = %.1f / %d = %.2f",
                                  chi2, ndf, chi2 / ndf));
+
 
 
   // Draw y=0 reference line across the current X range

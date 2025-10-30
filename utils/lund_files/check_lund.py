@@ -190,7 +190,7 @@ def main():
         print(f"  -> {p}")
         process_file(p)
         
-    preface = "my_multithread"
+    preface = "old_andrey"
 
     # Draw/save plots once after all files are processed
     draw_with_text(h2_q2_xbj, f"{preface}_Q2_vs_xbj.pdf")
